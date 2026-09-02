@@ -1,0 +1,44 @@
+"use client";
+
+import { CheckoutButton } from "@/components/checkout/CheckoutButton";
+import { formatPrice } from "@/lib/pricing-utils";
+import type { PricingConfig } from "@/lib/pricing-types";
+
+interface CategoryPricingGridProps {
+  config: PricingConfig;
+}
+
+export function CategoryPricingGrid({ config }: CategoryPricingGridProps) {
+  return (
+    <section className="section-padding">
+      <div className="page-wrap">
+        <p className="eyebrow">Kategorien</p>
+        <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">Preise nach Kategorie</h2>
+        <p className="mt-5 max-w-xl text-muted">
+          Je nach Branche und Spezialisierung variieren die Lead-Preise: transparent und fair.
+          Mit dem Kauf gelten die AGB. Rückerstattungen sind ausgeschlossen, da digitale
+          Lead-Daten verkauft werden.
+        </p>
+
+        <ul className="mt-12 divide-y divide-line border-y border-line">
+          {config.categories.map((category) => (
+            <li
+              key={category.slug}
+              className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-baseline justify-between gap-6 sm:block">
+                <span className="text-ink">{category.name}</span>
+                <span className="price text-2xl text-brass sm:ml-6">
+                  ab {formatPrice(category.basePrice)}
+                </span>
+              </div>
+              <CheckoutButton kind="category" slug={category.slug} variant="outline" compact>
+                Lead sichern
+              </CheckoutButton>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}

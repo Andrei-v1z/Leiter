@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0b1220;
+  --color-brass: #9a7544;
+  --color-paper: #f4f1eb;
+  --color-card: #fbf9f5;
+  --color-ink: #171410;
+  --color-muted: #6f6a62;
+  --color-line: #e4dfd5;
+  --color-amber: #c08a3e;
+  --color-error: #b4534a;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex), ui-monospace, "Cascadia Mono", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-color: var(--color-paper);
+  }
+
+  ::selection {
+    background-color: var(--color-navy);
+    color: var(--color-card);
+  }
+
+  .ink-panel ::selection,
+  .bg-navy ::selection {
+    background-color: var(--color-brass);
+    color: var(--color-card);
+  }
+}
+
+@layer components {
+  .section-padding {
+    @apply px-5 py-16 sm:px-8 lg:px-12 lg:py-24;
+  }
+
+  .section-tight {
+    @apply px-5 py-10 sm:px-8 lg:px-12 lg:py-14;
+  }
+
+  .page-wrap {
+    @apply mx-auto w-full max-w-6xl;
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--color-brass);
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .price {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+
+  .paper-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+  }
+
+  .ink-panel {
+    background: var(--color-navy);
+    color: var(--color-card);
+  }
+
+  .hairline {
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  .field {
+    @apply w-full border border-line bg-card px-4 py-3 text-ink outline-none transition-colors placeholder:text-muted focus:border-brass;
+  }
+}
+
+@layer utilities {
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  }
+}
