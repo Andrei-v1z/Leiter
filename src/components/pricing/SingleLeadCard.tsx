@@ -10,15 +10,11 @@ interface SingleLeadCardProps {
 
 const features = [
   "Frische B2B-Anfrage",
-  "Vollständige Anfragebeschreibung",
+  "Anfragebeschreibung",
   "Kontaktinformationen",
   "Standort",
   "Branche",
-  "Unternehmensgröße (sofern verfügbar)",
-  "Lead-Alter",
-  "Lead-Qualitätsindikatoren",
-  "Kaufhistorie / Status",
-  "Sicherer Dashboard-Zugang",
+  "Keine Rückerstattung",
 ];
 
 export function SingleLeadCard({ config }: SingleLeadCardProps) {
@@ -34,7 +30,7 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
             <span className="price text-6xl text-card">{formatPrice(price)}</span>
           </div>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-card/60">
-            Ideal für Berater, die Leiter ohne großes Paket testen möchten.
+            Ein Lead. Ab {formatPrice(price)}. Digitale Daten, keine Rückerstattung.
           </p>
         </div>
         <div className="mt-10">

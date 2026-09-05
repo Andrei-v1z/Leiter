@@ -20,7 +20,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
             {formatPrice(basePrice)}
           </p>
           <p className="mt-4 max-w-xs text-sm text-card/55">
-            Einzeln kaufen. Bessere Konditionen ab fünf Leads.
+            Leads ab {formatPrice(basePrice)}. Kein Dashboard. Keine Rückerstattung.
           </p>
         </FadeBlur>
 

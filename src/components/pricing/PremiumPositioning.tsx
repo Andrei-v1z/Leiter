@@ -13,8 +13,8 @@ const highlights = [
   },
   {
     n: "03",
-    title: "Transparenz",
-    text: "Lead-Alter und Qualitätsindikatoren stehen im Dossier, nicht hinter einem Versprechen.",
+    title: "Klarheit",
+    text: "Du kaufst die Anfrage und den Kontakt. Kein Dashboard, keine versteckten Stufen.",
   },
   {
     n: "04",
@@ -23,8 +23,8 @@ const highlights = [
   },
   {
     n: "05",
-    title: "Exklusivität",
-    text: "Wer zuerst handelt, spricht zuerst. Exklusive Leads gehören nur dir.",
+    title: "Endgültig",
+    text: "Digitale Lead-Daten sind nicht erstattungsfähig. Der Kauf ist verbindlich.",
   },
 ];
 

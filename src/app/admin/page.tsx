@@ -216,47 +216,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Exclusive */}
-        <div className="mt-8 border border-line bg-card p-6">
-          <h2 className="text-lg font-semibold text-ink">Exklusive Leads</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-xs text-muted">Basispreis (€)</label>
-              <input
-                type="number"
-                value={config.exclusive.basePrice}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    exclusive: { ...config.exclusive, basePrice: Number(e.target.value) },
-                  })
-                }
-                className="mt-1 w-full field"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted">Beispiel-Preis (€)</label>
-              <input
-                type="number"
-                value={config.exclusive.exampleLead.price}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    exclusive: {
-                      ...config.exclusive,
-                      exampleLead: {
-                        ...config.exclusive.exampleLead,
-                        price: Number(e.target.value),
-                      },
-                    },
-                  })
-                }
-                className="mt-1 w-full field"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Subscriptions */}
         <div className="mt-8 border border-line bg-card p-6">
           <h2 className="text-lg font-semibold text-ink">Abos</h2>

@@ -13,11 +13,10 @@ export function CategoryPricingGrid({ config }: CategoryPricingGridProps) {
     <section className="section-padding">
       <div className="page-wrap">
         <p className="eyebrow">Kategorien</p>
-        <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">Preise nach Kategorie</h2>
+        <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">Leads nach Kategorie</h2>
         <p className="mt-5 max-w-xl text-muted">
-          Je nach Branche und Spezialisierung variieren die Lead-Preise: transparent und fair.
-          Mit dem Kauf gelten die AGB. Rückerstattungen sind ausgeschlossen, da digitale
-          Lead-Daten verkauft werden.
+          Jeder Lead startet bei {formatPrice(config.singleLead.basePrice)}. Kein Dashboard, keine
+          Exklusiv-Stufen. Mit dem Kauf gelten die AGB. Rückerstattungen sind ausgeschlossen.
         </p>
 
         <ul className="mt-12 divide-y divide-line border-y border-line">

@@ -54,7 +54,9 @@ export function Hero({ config }: HeroProps) {
           <div className="mt-10 border-t border-white/10 pt-8">
             <p className="meta text-card/40">ab</p>
             <p className="price mt-3 text-5xl text-card sm:text-6xl">{formatPrice(basePrice)}</p>
-            <p className="mt-3 text-sm text-card/50">pro Lead. Mengenrabatte im Paket.</p>
+            <p className="mt-3 text-sm text-card/50">
+              pro Lead. Kein Dashboard. Keine Rückerstattung.
+            </p>
           </div>
         </aside>
         </FadeBlur>

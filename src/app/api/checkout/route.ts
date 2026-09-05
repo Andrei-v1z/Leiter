@@ -48,9 +48,10 @@ export async function POST(request: NextRequest) {
       break;
     }
     case "exclusive": {
-      name = `Leiter Exklusiv-Lead · ${config.exclusive.exampleLead.category}`;
-      amount = config.exclusive.exampleLead.price;
-      break;
+      return NextResponse.json(
+        { error: "Exklusive Leads werden nicht angeboten." },
+        { status: 400 }
+      );
     }
     case "category": {
       const category = config.categories.find((c) => c.slug === body.slug);

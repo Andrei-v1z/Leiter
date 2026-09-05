@@ -32,8 +32,8 @@ export function VolumePricing({ config }: VolumePricingProps) {
             Je mehr du kaufst, desto weniger zahlst du pro Lead.
           </blockquote>
           <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-muted">
-            Sichere dir bessere Konditionen für größere Lead-Pakete und konzentriere dein Budget
-            auf kontinuierliche Neukundengewinnung.
+            Leads ab {formatPrice(config.singleLead.basePrice)}. Größere Pakete senken den
+            Stückpreis. Kein Dashboard, keine Rückerstattung.
           </p>
           <div className="mt-8">
             <Button href="/preise#pakete" variant="outline">

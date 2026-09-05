@@ -3,7 +3,6 @@ import { formatPrice } from "@/lib/pricing-utils";
 import { FadeBlur } from "@/components/ui/FadeBlur";
 import { SingleLeadCard } from "@/components/pricing/SingleLeadCard";
 import { VolumePricing } from "@/components/pricing/VolumePricing";
-import { ExclusiveLeadCard } from "@/components/pricing/ExclusiveLeadCard";
 import { CategoryPricingGrid } from "@/components/pricing/CategoryPricingGrid";
 import { SubscriptionCards } from "@/components/pricing/SubscriptionCards";
 import { PremiumPositioning } from "@/components/pricing/PremiumPositioning";
@@ -13,7 +12,7 @@ import { SalesPitch } from "@/components/home/SalesPitch";
 export const metadata = {
   title: "Preise · Leiter.be",
   description:
-    "Ein guter Lead kann mehr wert sein als 120 €. Investiere in Anfragen von Unternehmen mit konkretem Beratungsbedarf.",
+    "Leads ab 120 €. Kein Dashboard, keine Exklusiv-Pakete. Digitale Lead-Daten, keine Rückerstattung.",
 };
 
 export default async function PreisePage() {
@@ -29,8 +28,8 @@ export default async function PreisePage() {
             Ein guter Lead kann mehr wert sein als {basePrice}.
           </h1>
           <p className="mt-8 max-w-xl text-[1.08rem] leading-relaxed text-muted">
-            Investiere nicht in Masse. Investiere in Anfragen von Unternehmen, die tatsächlich nach
-            einer Lösung suchen.
+            Leads ab {basePrice}. Kein Dashboard, keine Exklusiv-Pakete. Digitale Lead-Daten,
+            keine Rückerstattung.
           </p>
         </FadeBlur>
       </section>
@@ -43,7 +42,6 @@ export default async function PreisePage() {
 
       <SubscriptionCards config={config} />
       <VolumePricing config={config} />
-      <ExclusiveLeadCard config={config} />
       <CategoryPricingGrid config={config} />
       <PremiumPositioning />
       <PriceAnchoring />

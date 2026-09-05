@@ -12,9 +12,9 @@ export function PriceAnchoring() {
   const leiter = [
     "Aktuelle Anfrage",
     "Konkreter Bedarf",
-    "Lead-Alter sichtbar",
-    "Qualitätsindikatoren",
     "Direkter Kontakt",
+    "Ab 120 € pro Lead",
+    "Keine Rückerstattung",
   ];
 
   return (
