@@ -1,5 +1,6 @@
 import { getPricingConfig } from "@/lib/pricing-store";
 import { formatPrice } from "@/lib/pricing-utils";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { SingleLeadCard } from "@/components/pricing/SingleLeadCard";
 import { VolumePricing } from "@/components/pricing/VolumePricing";
 import { ExclusiveLeadCard } from "@/components/pricing/ExclusiveLeadCard";
@@ -22,7 +23,7 @@ export default async function PreisePage() {
   return (
     <>
       <section className="section-padding pb-12">
-        <div className="page-wrap max-w-3xl">
+        <FadeBlur className="page-wrap max-w-3xl">
           <p className="eyebrow">Preise</p>
           <h1 className="display mt-6 max-w-[16ch] text-[2.7rem] text-ink sm:text-6xl lg:text-[4.4rem]">
             Ein guter Lead kann mehr wert sein als {basePrice}.
@@ -31,7 +32,7 @@ export default async function PreisePage() {
             Investiere nicht in Masse. Investiere in Anfragen von Unternehmen, die tatsächlich nach
             einer Lösung suchen.
           </p>
-        </div>
+        </FadeBlur>
       </section>
 
       <section className="px-5 pb-8 sm:px-8 lg:px-12">

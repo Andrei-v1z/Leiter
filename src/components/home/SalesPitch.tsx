@@ -1,3 +1,4 @@
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig } from "@/lib/pricing-types";
 
@@ -12,7 +13,7 @@ export function SalesPitch({ config, variant = "full" }: SalesPitchProps) {
   if (variant === "short") {
     return (
       <section className="section-tight">
-        <div className="page-wrap max-w-3xl border-l border-brass/70 pl-6 sm:pl-8">
+        <FadeBlur className="page-wrap max-w-3xl border-l border-brass/70 pl-6 sm:pl-8">
           <blockquote className="display italic text-3xl text-ink sm:text-[2.7rem] sm:leading-[1.12]">
             Ein kalter Kontakt kostet Zeit. Ein warmer Lead kann einen Kunden bringen.
           </blockquote>
@@ -23,14 +24,14 @@ export function SalesPitch({ config, variant = "full" }: SalesPitchProps) {
           <p className="meta mt-6 text-brass">
             Ab {formatPrice(basePrice)} pro Lead. Mengenrabatte im Paket.
           </p>
-        </div>
+        </FadeBlur>
       </section>
     );
   }
 
   return (
     <section className="section-padding">
-      <div className="page-wrap max-w-3xl">
+      <FadeBlur className="page-wrap max-w-3xl">
         <p className="eyebrow">Warum Leiter</p>
         <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">
           Warum {formatPrice(basePrice)} für einen Lead zahlen?
@@ -49,7 +50,7 @@ export function SalesPitch({ config, variant = "full" }: SalesPitchProps) {
         <p className="display mt-12 italic text-2xl text-ink sm:text-3xl">
           Weniger Zeit mit Kaltakquise. Mehr Zeit mit echten Interessenten.
         </p>
-      </div>
+      </FadeBlur>
     </section>
   );
 }

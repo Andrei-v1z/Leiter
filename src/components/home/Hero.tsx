@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig } from "@/lib/pricing-types";
 
@@ -13,7 +14,7 @@ export function Hero({ config }: HeroProps) {
   return (
     <section className="px-5 pt-16 pb-20 sm:px-8 lg:px-12 lg:pt-28 lg:pb-32">
       <div className="page-wrap grid items-end gap-16 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="border-l border-brass/70 pl-6 sm:pl-8">
+        <FadeBlur className="border-l border-brass/70 pl-6 sm:pl-8">
           <p className="eyebrow">Dossier 01 · Nachfrage</p>
           <h1 className="display mt-8 max-w-[13ch] text-[2.85rem] text-ink sm:text-6xl lg:text-[4.75rem]">
             Dein Vertrieb sollte nicht hinter Kunden herlaufen.
@@ -37,9 +38,10 @@ export function Hero({ config }: HeroProps) {
               Mitgliedschaften
             </Link>
           </div>
-        </div>
+        </FadeBlur>
 
-        <aside className="ink-panel relative p-8 sm:p-10">
+        <FadeBlur delay={160} className="h-full">
+        <aside className="ink-panel relative h-full p-8 sm:p-10">
           <p className="meta text-brass">Was Leiter löst</p>
           <div className="mt-8 space-y-5 text-[15px] leading-relaxed text-card/70">
             <p>Aktuelle B2B-Anfragen, zusammengeführt mit spezialisierten Beratern.</p>
@@ -55,6 +57,7 @@ export function Hero({ config }: HeroProps) {
             <p className="mt-3 text-sm text-card/50">pro Lead. Mengenrabatte im Paket.</p>
           </div>
         </aside>
+        </FadeBlur>
       </div>
     </section>
   );

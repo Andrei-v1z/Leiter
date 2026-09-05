@@ -1,3 +1,5 @@
+import { FadeBlur } from "@/components/ui/FadeBlur";
+
 const highlights = [
   {
     n: "01",
@@ -30,7 +32,7 @@ export function PremiumPositioning() {
   return (
     <section className="section-padding">
       <div className="page-wrap grid gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="lg:sticky lg:top-28">
+        <FadeBlur className="lg:sticky lg:top-28">
           <p className="eyebrow">Positionierung</p>
           <h2 className="display mt-6 max-w-[14ch] text-4xl text-ink sm:text-5xl">
             Keine Kontaktliste. Eine Geschäftschance.
@@ -43,16 +45,18 @@ export function PremiumPositioning() {
               Beratungsbedarf.
             </p>
           </div>
-        </div>
+        </FadeBlur>
 
         <ol className="divide-y divide-line border-y border-line">
-          {highlights.map((item) => (
-            <li key={item.n} className="grid grid-cols-[3.5rem_1fr] gap-6 py-6 sm:gap-8">
-              <span className="meta pt-1 text-brass">{item.n}</span>
-              <div>
-                <p className="display text-2xl text-ink">{item.title}</p>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{item.text}</p>
-              </div>
+          {highlights.map((item, index) => (
+            <li key={item.n}>
+              <FadeBlur delay={index * 80} className="grid grid-cols-[3.5rem_1fr] gap-6 py-6 sm:gap-8">
+                <span className="meta pt-1 text-brass">{item.n}</span>
+                <div>
+                  <p className="display text-2xl text-ink">{item.title}</p>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{item.text}</p>
+                </div>
+              </FadeBlur>
             </li>
           ))}
         </ol>

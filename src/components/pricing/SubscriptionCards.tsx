@@ -1,4 +1,5 @@
 import { CheckoutButton } from "@/components/checkout/CheckoutButton";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig, SubscriptionPlan } from "@/lib/pricing-types";
@@ -11,7 +12,7 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
   return (
     <article
       className={cn(
-        "flex h-full flex-col p-8 sm:p-10",
+        "flex h-full flex-col p-7 sm:p-8",
         featured ? "bg-navy text-card" : "bg-card"
       )}
     >
@@ -74,15 +75,13 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
 
 export function SubscriptionCards({ config }: SubscriptionCardsProps) {
   const plans = config.subscriptions ?? [];
-  const featured = plans.find((plan) => plan.featured);
-  const rest = plans.filter((plan) => !plan.featured);
 
   if (plans.length === 0) return null;
 
   return (
     <section id="abos" className="section-padding">
       <div className="page-wrap">
-        <div className="max-w-2xl">
+        <FadeBlur className="max-w-2xl">
           <p className="eyebrow">Mitgliedschaft</p>
           <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">
             Ein Abo für kontinuierliche Nachfrage.
@@ -91,26 +90,15 @@ export function SubscriptionCards({ config }: SubscriptionCardsProps) {
             Kaufe einzelne Leads, wenn du testen möchtest, oder sichere dir jeden Monat frische
             Anfragen zu besseren Konditionen.
           </p>
-        </div>
+        </FadeBlur>
 
-        {featured ? (
-          <div className="mt-14 grid gap-px bg-line lg:grid-cols-12">
-            <div className="border border-line lg:col-span-7">
-              <PlanCard plan={featured} featured />
-            </div>
-            <div className="grid border border-line lg:col-span-5">
-              {rest.map((plan) => (
-                <PlanCard key={plan.slug} plan={plan} />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-14 grid gap-px border border-line bg-line lg:grid-cols-3">
-            {plans.map((plan) => (
-              <PlanCard key={plan.slug} plan={plan} />
-            ))}
-          </div>
-        )}
+        <div className="mt-14 grid gap-px border border-line bg-line md:grid-cols-3">
+          {plans.map((plan, index) => (
+            <FadeBlur key={plan.slug} delay={index * 120} className="h-full">
+              <PlanCard plan={plan} featured={plan.featured} />
+            </FadeBlur>
+          ))}
+        </div>
       </div>
     </section>
   );

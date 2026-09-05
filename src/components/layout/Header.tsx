@@ -9,9 +9,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur-md">
       <div className="page-wrap flex items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
-        <Link href="/" className="flex items-baseline gap-1">
+        <Link href="/">
           <span className="display text-[1.7rem] leading-none text-ink">Leiter</span>
-          <span className="meta text-muted">.be</span>
         </Link>
 
         <nav className="flex items-center gap-8">

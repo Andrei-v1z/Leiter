@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig } from "@/lib/pricing-types";
 
@@ -13,7 +14,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
   return (
     <section className="ink-panel">
       <div className="page-wrap flex flex-col justify-between gap-12 px-5 py-12 sm:px-8 lg:flex-row lg:items-end lg:px-12 lg:py-16">
-        <div>
+        <FadeBlur>
           <p className="eyebrow text-brass">Einzelkauf</p>
           <p className="price mt-5 text-6xl text-card sm:text-7xl lg:text-8xl">
             {formatPrice(basePrice)}
@@ -21,10 +22,10 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
           <p className="mt-4 max-w-xs text-sm text-card/55">
             Einzeln kaufen. Bessere Konditionen ab fünf Leads.
           </p>
-        </div>
+        </FadeBlur>
 
         {featured && (
-          <div className="max-w-sm border-t border-white/10 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
+          <FadeBlur delay={140} className="max-w-sm border-t border-white/10 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
             <p className="meta text-brass">Oder im Abo</p>
             <p className="price mt-4 text-4xl text-card">{formatPrice(featured.monthlyPrice)}</p>
             <p className="mt-3 text-sm text-card/55">
@@ -36,7 +37,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
             >
               Mitgliedschaften ansehen
             </Link>
-          </div>
+          </FadeBlur>
         )}
       </div>
     </section>
