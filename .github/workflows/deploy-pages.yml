@@ -1,0 +1,95 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-leiter
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+        env:
+          IONOS_STANDALONE: "1"
+          PAGES_BASE_PATH: /Leiter
+          NEXT_PUBLIC_SITE_URL: https://andrei-v1z.github.io/Leiter
+
+      - name: Prepare static site
+        run: |
+          mkdir -p .pages-deploy/_next/static
+          cp -a .next/standalone/. .pages-deploy/
+          if [ -d public ]; then cp -a public/. .pages-deploy/; fi
+          cp -a .next/static/. .pages-deploy/_next/static/
+
+          cd .pages-deploy
+          export PORT=3457 HOSTNAME=localhost NODE_ENV=production
+          export NEXT_PUBLIC_SITE_URL="https://andrei-v1z.github.io/Leiter"
+          node server.js > /tmp/leiter-pages.log 2>&1 &
+          echo $! > /tmp/leiter-pages.pid
+          for i in $(seq 1 40); do
+            if curl -sf "http://localhost:3457/Leiter/" >/dev/null; then break; fi
+            sleep 1
+          done
+
+          mirror() {
+            local url="$1" dest="$2"
+            mkdir -p "$(dirname "$dest")"
+            if curl -sf "http://localhost:3457$url" -o "$dest"; then
+              echo "mirrored $url -> $dest"
+            else
+              echo "FAIL $url" >&2
+              cat /tmp/leiter-pages.log >&2 || true
+              exit 1
+            fi
+          }
+
+          mirror "/Leiter/" "index.html"
+          mirror "/Leiter/preise" "preise/index.html"
+          mirror "/Leiter/impressum" "impressum/index.html"
+          mirror "/Leiter/datenschutz" "datenschutz/index.html"
+          mirror "/Leiter/agb" "agb/index.html"
+          mirror "/Leiter/kasse/erfolg" "kasse/erfolg/index.html"
+          mirror "/Leiter/kasse/abgebrochen" "kasse/abgebrochen/index.html"
+
+          touch .nojekyll
+          rm -f server.js .env
+          kill "$(cat /tmp/leiter-pages.pid)" || true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .pages-deploy
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

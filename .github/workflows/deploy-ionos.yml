@@ -9,6 +9,11 @@ concurrency:
   group: ionos-leiter
   cancel-in-progress: true
 
+env:
+  IONOS_SSH_HOST: access-5019302200.webspace-host.com
+  IONOS_SSH_USERNAME: su1846070
+  IONOS_SSH_PATH: Leiter
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,14 +34,14 @@ jobs:
         run: npm run build
         env:
           IONOS_STANDALONE: "1"
-          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.be' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.fr' }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
 
       - name: Prepare Apache static mirror
         env:
-          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.be' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.fr' }}
         run: |
           mkdir -p .ionos-deploy/_next/static
           cp -a .next/standalone/. .ionos-deploy/
@@ -48,7 +53,7 @@ jobs:
 
           cd .ionos-deploy
           export PORT=3457 HOSTNAME=localhost NODE_ENV=production
-          export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://leiter.be}"
+          export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://leiter.fr}"
           node server.js > /tmp/leiter-serve.log 2>&1 &
           echo $! > /tmp/leiter-serve.pid
           for i in $(seq 1 40); do
@@ -74,6 +79,9 @@ jobs:
           mirror "/kasse/erfolg" "kasse/erfolg/index.html"
           mirror "/kasse/abgebrochen" "kasse/abgebrochen/index.html"
 
+          test -f index.html
+          test -f app-proxy.php
+
           cat > .htaccess <<'EOF'
           DirectoryIndex index.html
           Options -Indexes
@@ -86,16 +94,16 @@ jobs:
 
           kill "$(cat /tmp/leiter-serve.pid)" || true
 
-      - name: Write runtime env and zip
+      - name: Write runtime env
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
-          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.be' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.fr' }}
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         run: |
           python3 - <<'PY'
           import os
-          site = os.environ.get("NEXT_PUBLIC_SITE_URL") or "https://leiter.be"
+          site = os.environ.get("NEXT_PUBLIC_SITE_URL") or "https://leiter.fr"
           lines = ["NODE_ENV=production", f"NEXT_PUBLIC_SITE_URL={site}"]
           for key in ("STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "ADMIN_TOKEN"):
               value = os.environ.get(key, "").strip()
@@ -104,21 +112,28 @@ jobs:
           with open(".ionos-deploy/.env", "w", encoding="utf-8") as handle:
               handle.write("\n".join(lines) + "\n")
           PY
-          (cd .ionos-deploy && zip -r -q ../leiter-deploy.zip .)
-          ls -lh leiter-deploy.zip
 
-      - name: Deploy zip via SFTP + SSH unzip
+      - name: Ensure remote directory exists
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.IONOS_SSH_HOST }}
+          username: ${{ env.IONOS_SSH_USERNAME }}
+          password: ${{ secrets.IONOS_SSH_PASSWORD }}
+          port: 22
+          script: |
+            mkdir -p ${{ env.IONOS_SSH_PATH }}
+
+      - name: Deploy to IONOS via rsync
         env:
-          IONOS_FTP_HOST: ${{ secrets.IONOS_FTP_HOST }}
-          IONOS_FTP_USER: ${{ secrets.IONOS_FTP_USER }}
-          IONOS_FTP_PASSWORD: ${{ secrets.IONOS_FTP_PASSWORD }}
+          SSHPASS: ${{ secrets.IONOS_SSH_PASSWORD }}
         run: |
+          if [ -z "$SSHPASS" ]; then
+            echo "::error::Add repository secret IONOS_SSH_PASSWORD (same value as Andrei-v1z/aethoncg.com)."
+            exit 1
+          fi
           sudo apt-get update -qq
-          sudo apt-get install -y -qq sshpass
-          sshpass -p "$IONOS_FTP_PASSWORD" sftp -o StrictHostKeyChecking=no -P 22 "$IONOS_FTP_USER@$IONOS_FTP_HOST" <<'EOF'
-          mkdir Leiter
-          put leiter-deploy.zip Leiter/deploy.zip
-          bye
-          EOF
-          sshpass -p "$IONOS_FTP_PASSWORD" ssh -o StrictHostKeyChecking=no -p 22 "$IONOS_FTP_USER@$IONOS_FTP_HOST" \
-            'cd Leiter && unzip -oq deploy.zip && rm -f deploy.zip && mkdir -p _app && cp -f server.js package.json _app/ && if [ -f .env ]; then cp -f .env _app/.env; fi && rm -rf _app/.next && cp -a .next _app/.next && if [ -d public ]; then cp -a public _app/; fi && test -f index.html && echo DEPLOY_OK'
+          sudo apt-get install -y -qq sshpass rsync
+          sshpass -e rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+            .ionos-deploy/ \
+            "${{ env.IONOS_SSH_USERNAME }}@${{ env.IONOS_SSH_HOST }}:${{ env.IONOS_SSH_PATH }}/"
