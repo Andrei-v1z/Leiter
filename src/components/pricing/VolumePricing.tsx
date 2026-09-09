@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckoutButton } from "@/components/checkout/CheckoutButton";
 import { Button } from "@/components/ui/Button";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig } from "@/lib/pricing-types";
@@ -26,23 +27,23 @@ export function VolumePricing({ config }: VolumePricingProps) {
   return (
     <section className="section-padding">
       <div className="page-wrap">
-        <div className="max-w-2xl">
+        <FadeBlur className="max-w-2xl">
           <p className="eyebrow">Mengenrabatte</p>
           <blockquote className="display mt-5 text-4xl text-ink sm:text-5xl">
             Je mehr du kaufst, desto weniger zahlst du pro Lead.
           </blockquote>
           <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-muted">
-            Leads ab {formatPrice(config.singleLead.basePrice)}. Größere Pakete senken den
-            Stückpreis. Kein Dashboard, keine Rückerstattung.
+            Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gibt es Rabatt —
+            je mehr du kaufst, desto günstiger wird der Stückpreis. Keine Rückerstattung.
           </p>
           <div className="mt-8">
             <Button href="/preise#pakete" variant="outline">
               Lead-Paket zusammenstellen
             </Button>
           </div>
-        </div>
+        </FadeBlur>
 
-        <div className="mt-16 hidden border-y border-line py-10 lg:block">
+        <FadeBlur delay={80} className="mt-16 hidden border-y border-line py-10 lg:block">
           <div className="flex items-end justify-between gap-2">
             {tiers.map((tier, i) => (
               <div key={tier.quantity} className="flex flex-1 flex-col items-center">
@@ -63,9 +64,9 @@ export function VolumePricing({ config }: VolumePricingProps) {
               </div>
             ))}
           </div>
-        </div>
+        </FadeBlur>
 
-        <div className="mt-12 border border-line bg-card p-8 sm:p-10">
+        <FadeBlur delay={140} className="mt-12 border border-line bg-card p-8 sm:p-10">
           <label className="meta text-muted">
             Lead-Menge wählen
           </label>
@@ -119,9 +120,9 @@ export function VolumePricing({ config }: VolumePricingProps) {
               Paket auswählen
             </CheckoutButton>
           </div>
-        </div>
+        </FadeBlur>
 
-        <div id="pakete" className="mt-6 grid border-x border-t border-line sm:grid-cols-2 lg:grid-cols-3">
+        <FadeBlur delay={180} id="pakete" className="mt-6 grid border-x border-t border-line sm:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier, i) => (
             <button
               key={tier.quantity}
@@ -182,7 +183,7 @@ export function VolumePricing({ config }: VolumePricingProps) {
               )}
             </button>
           ))}
-        </div>
+        </FadeBlur>
       </div>
     </section>
   );

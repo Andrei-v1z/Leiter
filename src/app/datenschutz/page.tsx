@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 
 export const metadata = {
   title: "Datenschutzerklärung · Leiter.be",
@@ -9,7 +10,7 @@ export const metadata = {
 export default function DatenschutzPage() {
   return (
     <article className="section-padding">
-      <div className="page-wrap max-w-3xl">
+      <FadeBlur className="page-wrap max-w-3xl" immediate>
         <p className="eyebrow">Rechtliches</p>
         <h1 className="display mt-5 text-4xl text-ink sm:text-5xl">Datenschutzerklärung</h1>
         <p className="mt-4 text-sm text-muted">
@@ -135,7 +136,7 @@ export default function DatenschutzPage() {
             </p>
           </section>
         </div>
-      </div>
+      </FadeBlur>
     </article>
   );
 }

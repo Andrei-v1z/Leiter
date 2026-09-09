@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 
 export function Footer() {
   return (
     <footer className="ink-panel mt-auto">
-      <div className="page-wrap px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
+      <FadeBlur className="page-wrap px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
         <div className="flex flex-col gap-14 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="display text-3xl text-card">Leiter</p>
@@ -58,7 +59,7 @@ export function Footer() {
             Rückerstattung.
           </p>
         </div>
-      </div>
+      </FadeBlur>
     </footer>
   );
 }

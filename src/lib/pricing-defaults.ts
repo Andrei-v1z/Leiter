@@ -1,87 +1,42 @@
 import type { PricingConfig } from "./pricing-types";
+import { BASE_LEAD_PRICE, buildVolumeTiers } from "./pricing-utils";
+
+export const PRICING_SCHEMA_VERSION = 2;
 
 export const defaultPricingConfig: PricingConfig = {
   singleLead: {
-    basePrice: 120,
+    basePrice: BASE_LEAD_PRICE,
     currency: "EUR",
   },
-  volumeTiers: [
-    {
-      quantity: 1,
-      totalPrice: 120,
-      perLeadPrice: 120,
-      savings: 0,
-      badge: null,
-      discountLabel: "Keine Ermäßigung",
-    },
-    {
-      quantity: 5,
-      totalPrice: 550,
-      perLeadPrice: 110,
-      savings: 50,
-      badge: "Beliebt",
-      discountLabel: null,
-    },
-    {
-      quantity: 10,
-      totalPrice: 1000,
-      perLeadPrice: 100,
-      savings: 200,
-      badge: "Bestes Preis-Leistungs-Verhältnis",
-      discountLabel: null,
-    },
-    {
-      quantity: 25,
-      totalPrice: 2250,
-      perLeadPrice: 90,
-      savings: 750,
-      badge: "Für aktive Vertriebsteams",
-      discountLabel: null,
-    },
-    {
-      quantity: 50,
-      totalPrice: 4000,
-      perLeadPrice: 80,
-      savings: 2000,
-      badge: "Professional",
-      discountLabel: null,
-    },
-    {
-      quantity: 100,
-      totalPrice: 7000,
-      perLeadPrice: 70,
-      savings: 5000,
-      badge: "Enterprise",
-      discountLabel: null,
-    },
-  ],
+  volumeTiers: buildVolumeTiers(BASE_LEAD_PRICE),
   categories: [
-    { slug: "unternehmensberatung", name: "Unternehmensberatung", basePrice: 120 },
-    { slug: "foerdermittelberatung", name: "Fördermittelberatung", basePrice: 120 },
-    { slug: "digitalisierung", name: "Digitalisierung", basePrice: 120 },
-    { slug: "finanzierung", name: "Finanzierung", basePrice: 120 },
-    { slug: "ma", name: "M&A", basePrice: 120 },
+    { slug: "unternehmensberatung", name: "Unternehmensberatung", basePrice: BASE_LEAD_PRICE },
+    { slug: "foerdermittelberatung", name: "Fördermittelberatung", basePrice: BASE_LEAD_PRICE },
+    { slug: "digitalisierung", name: "Digitalisierung", basePrice: BASE_LEAD_PRICE },
+    { slug: "finanzierung", name: "Finanzierung", basePrice: BASE_LEAD_PRICE },
+    { slug: "ma", name: "M&A", basePrice: BASE_LEAD_PRICE },
   ],
   exclusive: {
-    basePrice: 180,
+    basePrice: BASE_LEAD_PRICE,
     exampleLead: {
       category: "Fördermittelberatung",
       age: "1 Stunde",
       score: 96,
-      price: 180,
+      price: BASE_LEAD_PRICE,
     },
   },
   subscriptions: [
     {
       slug: "zugang",
       name: "Zugang",
-      monthlyPrice: 390,
+      monthlyPrice: 240,
       includedLeads: 3,
       badge: null,
       featured: false,
-      description: "Drei frische Leads im Monat. Kein Dashboard, keine Extras.",
+      description: "Drei Leads im Monat zum Einstiegspreis. Ab fünf Leads gilt der Mengenrabatt.",
       features: [
         "3 Leads pro Monat",
+        "80 € pro Lead",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
         "Keine Rückerstattung",
@@ -91,13 +46,14 @@ export const defaultPricingConfig: PricingConfig = {
     {
       slug: "atelier",
       name: "Atelier",
-      monthlyPrice: 980,
+      monthlyPrice: 700,
       includedLeads: 10,
       badge: "Empfohlen",
       featured: true,
-      description: "Zehn Leads im Monat für laufende Nachfrage. Kein Dashboard, keine Exklusiv-Leads.",
+      description: "Zehn Leads im Monat mit Mengenrabatt: 70 € statt 80 € pro Lead.",
       features: [
         "10 Leads pro Monat",
+        "70 € pro Lead · 10 € Rabatt",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
         "Keine Rückerstattung",
@@ -107,21 +63,23 @@ export const defaultPricingConfig: PricingConfig = {
     {
       slug: "kanzlei",
       name: "Kanzlei",
-      monthlyPrice: 2400,
+      monthlyPrice: 1950,
       includedLeads: 30,
-      badge: "Für Teams",
+      badge: "Bester Rabatt",
       featured: false,
-      description: "Dreißig Leads im Monat für Teams. Nur Leads, keine Plattform-Extras.",
+      description: "Dreißig Leads im Monat für Teams. 65 € statt 80 € pro Lead.",
       features: [
         "30 Leads pro Monat",
+        "65 € pro Lead · 15 € Rabatt",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
         "Keine Rückerstattung",
       ],
-      cta: "Partnerschaft anfragen",
+      cta: "Kanzlei wählen",
     },
   ],
   settings: {
     noSubscriptionRequired: false,
+    schemaVersion: PRICING_SCHEMA_VERSION,
   },
 };

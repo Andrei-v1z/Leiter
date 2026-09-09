@@ -1,6 +1,11 @@
 import { FadeBlur } from "@/components/ui/FadeBlur";
+import { formatPrice } from "@/lib/pricing-utils";
 
-export function PriceAnchoring() {
+interface PriceAnchoringProps {
+  basePrice: number;
+}
+
+export function PriceAnchoring({ basePrice }: PriceAnchoringProps) {
   const classic = [
     "Kaltakquise",
     "Listen kaufen",
@@ -13,7 +18,8 @@ export function PriceAnchoring() {
     "Aktuelle Anfrage",
     "Konkreter Bedarf",
     "Direkter Kontakt",
-    "Ab 120 € pro Lead",
+    `Ab ${formatPrice(basePrice)} pro Lead`,
+    "Ab 5 Leads Mengenrabatt",
     "Keine Rückerstattung",
   ];
 

@@ -46,5 +46,6 @@ export interface PricingConfig {
   subscriptions: SubscriptionPlan[];
   settings: {
     noSubscriptionRequired: boolean;
+    schemaVersion: number;
   };
 }

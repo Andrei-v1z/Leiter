@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckoutButton } from "@/components/checkout/CheckoutButton";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig } from "@/lib/pricing-types";
 
@@ -21,7 +22,7 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
   const price = config.singleLead.basePrice;
 
   return (
-    <div className="grid border border-line lg:grid-cols-[0.9fr_1.1fr]">
+    <FadeBlur className="grid border border-line lg:grid-cols-[0.9fr_1.1fr]">
       <div className="ink-panel flex flex-col justify-between p-8 sm:p-10">
         <div>
           <p className="meta text-brass">Einzel-Lead</p>
@@ -30,7 +31,8 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
             <span className="price text-6xl text-card">{formatPrice(price)}</span>
           </div>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-card/60">
-            Ein Lead. Ab {formatPrice(price)}. Digitale Daten, keine Rückerstattung.
+            Ein Lead. Ab {formatPrice(price)}. Ab 5 Leads gilt der Mengenrabatt. Digitale Daten,
+            keine Rückerstattung.
           </p>
         </div>
         <div className="mt-10">
@@ -51,6 +53,6 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
           ))}
         </ul>
       </div>
-    </div>
+    </FadeBlur>
   );
 }

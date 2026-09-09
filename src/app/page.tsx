@@ -16,7 +16,7 @@ export default async function HomePage() {
       <SubscriptionCards config={config} />
       <PremiumPositioning />
       <SalesPitch config={config} variant="short" />
-      <PriceAnchoring />
+      <PriceAnchoring basePrice={config.singleLead.basePrice} />
       <SalesPitch config={config} variant="full" />
     </>
   );

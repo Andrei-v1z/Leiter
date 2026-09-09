@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FadeBlur } from "@/components/ui/FadeBlur";
+import { StockImage } from "@/components/ui/StockImage";
 import { formatPrice } from "@/lib/pricing-utils";
+import { stockPhotos } from "@/lib/stock-photos";
 import type { PricingConfig } from "@/lib/pricing-types";
 
 interface HeroProps {
@@ -13,8 +15,8 @@ export function Hero({ config }: HeroProps) {
 
   return (
     <section className="px-5 pt-16 pb-20 sm:px-8 lg:px-12 lg:pt-28 lg:pb-32">
-      <div className="page-wrap grid items-end gap-16 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <FadeBlur className="border-l border-brass/70 pl-6 sm:pl-8">
+      <div className="page-wrap grid items-stretch gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
+        <FadeBlur className="border-l border-brass/70 pl-6 sm:pl-8" immediate>
           <p className="eyebrow">Dossier 01 · Nachfrage</p>
           <h1 className="display mt-8 max-w-[13ch] text-[2.85rem] text-ink sm:text-6xl lg:text-[4.75rem]">
             Dein Vertrieb sollte nicht hinter Kunden herlaufen.
@@ -40,25 +42,30 @@ export function Hero({ config }: HeroProps) {
           </div>
         </FadeBlur>
 
-        <FadeBlur delay={160} className="h-full">
-        <aside className="ink-panel relative h-full p-8 sm:p-10">
-          <p className="meta text-brass">Was Leiter löst</p>
-          <div className="mt-8 space-y-5 text-[15px] leading-relaxed text-card/70">
-            <p>Aktuelle B2B-Anfragen, zusammengeführt mit spezialisierten Beratern.</p>
-            <p>
-              Du siehst, was gesucht wird, wie frisch die Anfrage ist und wie relevant sie für dich
-              ist.
-            </p>
-            <p className="text-card">Dann entscheidest du, welchen Lead du kaufst.</p>
-          </div>
-          <div className="mt-10 border-t border-white/10 pt-8">
-            <p className="meta text-card/40">ab</p>
-            <p className="price mt-3 text-5xl text-card sm:text-6xl">{formatPrice(basePrice)}</p>
-            <p className="mt-3 text-sm text-card/50">
-              pro Lead. Kein Dashboard. Keine Rückerstattung.
-            </p>
-          </div>
-        </aside>
+        <FadeBlur delay={180} className="h-full min-h-[28rem]" immediate>
+          <aside className="relative h-full min-h-[28rem] overflow-hidden">
+            <StockImage
+              src={stockPhotos.hero.src}
+              alt={stockPhotos.hero.alt}
+              className="absolute inset-0"
+              overlay
+              priority
+            />
+            <div className="relative z-10 flex h-full min-h-[28rem] flex-col justify-end bg-gradient-to-t from-navy via-navy/70 to-navy/10 p-8 sm:p-10">
+              <p className="meta text-brass">Was Leiter löst</p>
+              <div className="mt-6 max-w-sm space-y-4 text-[15px] leading-relaxed text-card/80">
+                <p>Aktuelle B2B-Anfragen, zusammengeführt mit spezialisierten Beratern.</p>
+                <p className="text-card">Dann entscheidest du, welchen Lead du kaufst.</p>
+              </div>
+              <div className="mt-8 border-t border-white/15 pt-6">
+                <p className="meta text-card/40">ab</p>
+                <p className="price mt-3 text-5xl text-card sm:text-6xl">{formatPrice(basePrice)}</p>
+                <p className="mt-3 text-sm text-card/60">
+                  pro Lead. Ab 5 Leads Rabatt. Keine Rückerstattung.
+                </p>
+              </div>
+            </div>
+          </aside>
         </FadeBlur>
       </div>
     </section>

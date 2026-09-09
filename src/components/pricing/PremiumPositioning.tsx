@@ -1,4 +1,6 @@
 import { FadeBlur } from "@/components/ui/FadeBlur";
+import { StockImage } from "@/components/ui/StockImage";
+import { stockPhotos } from "@/lib/stock-photos";
 
 const highlights = [
   {
@@ -45,6 +47,12 @@ export function PremiumPositioning() {
               Beratungsbedarf.
             </p>
           </div>
+
+          <StockImage
+            src={stockPhotos.handshake.src}
+            alt={stockPhotos.handshake.alt}
+            className="mt-10 h-56 sm:h-72"
+          />
         </FadeBlur>
 
         <ol className="divide-y divide-line border-y border-line">

@@ -1,0 +1,83 @@
+{
+  "singleLead": {
+    "basePrice": 80,
+    "currency": "EUR"
+  },
+  "volumeTiers": [
+    {
+      "quantity": 1,
+      "totalPrice": 80,
+      "perLeadPrice": 80,
+      "savings": 0,
+      "badge": null,
+      "discountLabel": "Kein Rabatt"
+    },
+    {
+      "quantity": 5,
+      "totalPrice": 375,
+      "perLeadPrice": 75,
+      "savings": 25,
+      "badge": "Rabatt",
+      "discountLabel": null
+    },
+    {
+      "quantity": 10,
+      "totalPrice": 700,
+      "perLeadPrice": 70,
+      "savings": 100,
+      "badge": "Beliebt",
+      "discountLabel": null
+    },
+    {
+      "quantity": 25,
+      "totalPrice": 1625,
+      "perLeadPrice": 65,
+      "savings": 375,
+      "badge": "Mengenrabatt",
+      "discountLabel": null
+    },
+    {
+      "quantity": 50,
+      "totalPrice": 3000,
+      "perLeadPrice": 60,
+      "savings": 1000,
+      "badge": "Starker Rabatt",
+      "discountLabel": null
+    },
+    {
+      "quantity": 100,
+      "totalPrice": 5500,
+      "perLeadPrice": 55,
+      "savings": 2500,
+      "badge": "Bester Rabatt",
+      "discountLabel": null
+    }
+  ],
+  "categories": [
+    { "slug": "unternehmensberatung", "name": "Unternehmensberatung", "basePrice": 80 },
+    { "slug": "foerdermittelberatung", "name": "Fördermittelberatung", "basePrice": 80 },
+    { "slug": "digitalisierung", "name": "Digitalisierung", "basePrice": 80 },
+    { "slug": "finanzierung", "name": "Finanzierung", "basePrice": 80 },
+    { "slug": "ma", "name": "M&A", "basePrice": 80 }
+  ],
+  "subscriptions": [
+    {
+      "slug": "zugang",
+      "name": "Zugang",
+      "monthlyPrice": 240,
+      "includedLeads": 3
+    },
+    {
+      "slug": "atelier",
+      "name": "Atelier",
+      "monthlyPrice": 700,
+      "includedLeads": 10
+    },
+    {
+      "slug": "kanzlei",
+      "name": "Kanzlei",
+      "monthlyPrice": 1950,
+      "includedLeads": 30
+    }
+  ]
+}

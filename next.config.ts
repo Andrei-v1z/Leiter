@@ -7,7 +7,18 @@ const nextConfig: NextConfig = {
   ...(pagesBasePath
     ? { basePath: pagesBasePath, assetPrefix: pagesBasePath }
     : {}),
-  images: { unoptimized: true },
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
+  async rewrites() {
+    return [{ source: "/favicon.ico", destination: "/favicon.svg" }];
+  },
 };
 
 export default nextConfig;

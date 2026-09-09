@@ -87,8 +87,8 @@ export function SubscriptionCards({ config }: SubscriptionCardsProps) {
             Ein Abo für kontinuierliche Nachfrage.
           </h2>
           <p className="mt-6 max-w-xl text-[1.05rem] leading-[1.7] text-muted">
-            Kaufe einzelne Leads, wenn du testen möchtest, oder sichere dir jeden Monat frische
-            Anfragen zu besseren Konditionen.
+            Einzelne Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads und in den
+            größeren Abos gilt der Mengenrabatt.
           </p>
         </FadeBlur>
 

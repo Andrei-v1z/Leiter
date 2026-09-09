@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
+import {
+  resolveCheckoutLine,
+  type CheckoutKind,
+  type CheckoutRequest,
+} from "@/lib/checkout-pricing";
 import { getPricingConfig } from "@/lib/pricing-store";
 import { getSiteUrl, getStripe } from "@/lib/stripe";
 
-type CheckoutKind = "single" | "volume" | "exclusive" | "category" | "subscription";
-
-interface CheckoutBody {
+interface CheckoutBody extends CheckoutRequest {
   kind: CheckoutKind;
-  slug?: string;
-  quantity?: number;
 }
-
-const NO_REFUND =
-  "Digitale Lead-Daten. Keine Rückerstattung. Mit der Zahlung gelten die AGB von Leiter.be.";
 
 export async function POST(request: NextRequest) {
   let body: CheckoutBody;
@@ -22,91 +20,61 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Ungültige Anfrage" }, { status: 400 });
   }
 
-  const config = await getPricingConfig();
-  const stripe = getStripe();
-  const site = getSiteUrl();
-
-  let name = "";
-  let description = NO_REFUND;
-  let amount = 0;
-  let mode: "payment" | "subscription" = "payment";
-
-  switch (body.kind) {
-    case "single": {
-      name = "Leiter Einzel-Lead";
-      amount = config.singleLead.basePrice;
-      break;
-    }
-    case "volume": {
-      const quantity = Number(body.quantity);
-      const tier = config.volumeTiers.find((t) => t.quantity === quantity);
-      if (!tier) {
-        return NextResponse.json({ error: "Paket nicht gefunden" }, { status: 400 });
-      }
-      name = `Leiter Lead-Paket (${tier.quantity} ${tier.quantity === 1 ? "Lead" : "Leads"})`;
-      amount = tier.totalPrice;
-      break;
-    }
-    case "exclusive": {
-      return NextResponse.json(
-        { error: "Exklusive Leads werden nicht angeboten." },
-        { status: 400 }
-      );
-    }
-    case "category": {
-      const category = config.categories.find((c) => c.slug === body.slug);
-      if (!category) {
-        return NextResponse.json({ error: "Kategorie nicht gefunden" }, { status: 400 });
-      }
-      name = `Leiter Lead · ${category.name}`;
-      amount = category.basePrice;
-      break;
-    }
-    case "subscription": {
-      const plan = config.subscriptions.find((p) => p.slug === body.slug);
-      if (!plan) {
-        return NextResponse.json({ error: "Abo nicht gefunden" }, { status: 400 });
-      }
-      name = `Leiter ${plan.name}`;
-      description = `${plan.includedLeads} Leads pro Monat. ${NO_REFUND}`;
-      amount = plan.monthlyPrice;
-      mode = "subscription";
-      break;
-    }
-    default:
-      return NextResponse.json({ error: "Unbekannte Bestellung" }, { status: 400 });
+  if (!body?.kind) {
+    return NextResponse.json({ error: "Unbekannte Bestellung" }, { status: 400 });
   }
 
-  if (amount <= 0) {
+  const config = await getPricingConfig();
+  const resolved = resolveCheckoutLine(config, body);
+  if (!resolved.ok) {
+    return NextResponse.json({ error: resolved.error }, { status: resolved.status });
+  }
+
+  const { line } = resolved;
+  const unitCents = Math.round(line.unitAmount * 100);
+  if (unitCents <= 0 || line.quantity < 1) {
     return NextResponse.json({ error: "Ungültiger Preis" }, { status: 400 });
   }
 
+  let stripe: ReturnType<typeof getStripe>;
+  try {
+    stripe = getStripe();
+  } catch {
+    return NextResponse.json(
+      { error: "Stripe ist nicht konfiguriert. Bitte den Secret Key prüfen." },
+      { status: 503 }
+    );
+  }
+
+  const site = getSiteUrl();
   const priceData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData = {
     currency: "eur",
     product_data: {
-      name,
-      description,
+      name: line.name,
+      description: line.description,
     },
-    unit_amount: Math.round(amount * 100),
+    unit_amount: unitCents,
   };
 
-  if (mode === "subscription") {
+  if (line.mode === "subscription") {
     priceData.recurring = { interval: "month" };
   }
 
   try {
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      mode,
+      mode: line.mode,
       locale: "de",
       billing_address_collection: "required",
-      line_items: [{ price_data: priceData, quantity: 1 }],
+      line_items: [{ price_data: priceData, quantity: line.quantity }],
       success_url: `${site}/kasse/erfolg?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}/kasse/abgebrochen`,
       metadata: {
         kind: body.kind,
         slug: body.slug ?? "",
-        quantity: String(body.quantity ?? ""),
-        product: name,
+        quantity: String(line.quantity),
+        unit_amount_eur: String(line.unitAmount),
+        total_eur: String(line.unitAmount * line.quantity),
+        product: line.name,
       },
       custom_text: {
         submit: {
@@ -116,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    if (mode === "payment") {
+    if (line.mode === "payment") {
       sessionParams.customer_creation = "always";
       sessionParams.submit_type = "pay";
     }
@@ -124,7 +92,10 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create(sessionParams);
 
     if (!session.url) {
-      return NextResponse.json({ error: "Checkout konnte nicht gestartet werden" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Checkout konnte nicht gestartet werden" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ url: session.url });
@@ -132,7 +103,9 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Stripe-Fehler";
     const userMessage = /invalid api key/i.test(message)
       ? "Stripe-Schlüssel ungültig. Bitte den Secret Key in der Umgebung prüfen."
-      : message;
+      : /not set/i.test(message)
+        ? "Stripe ist nicht konfiguriert. Bitte den Secret Key prüfen."
+        : message;
     return NextResponse.json({ error: userMessage }, { status: 500 });
   }
 }

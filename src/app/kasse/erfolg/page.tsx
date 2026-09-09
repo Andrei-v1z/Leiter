@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/Button";
+import { FadeBlur } from "@/components/ui/FadeBlur";
 
 export default function CheckoutSuccessPage() {
   return (
     <section className="section-padding">
-      <div className="page-wrap max-w-xl">
+      <FadeBlur className="page-wrap max-w-xl" immediate>
         <p className="eyebrow">Zahlung</p>
         <h1 className="display mt-6 text-4xl text-ink sm:text-5xl">Zahlung eingegangen.</h1>
         <p className="mt-6 leading-relaxed text-muted">
@@ -16,7 +17,7 @@ export default function CheckoutSuccessPage() {
             Zur Startseite
           </Button>
         </div>
-      </div>
+      </FadeBlur>
     </section>
   );
 }
