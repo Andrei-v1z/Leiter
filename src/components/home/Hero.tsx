@@ -23,10 +23,10 @@ export function Hero({ config }: HeroProps) {
 
           <div className="mt-10 max-w-[38rem] space-y-4 text-[1.05rem] leading-[1.7] text-muted">
             <p>
-              Unternehmen und Gründer suchen täglich nach Beratung, Fördermitteln, Digitalisierung, Finanzierung
+              Unternehmen und Gründer suchen täglich nach Beratung,<br /> Fördermitteln, Digitalisierung, Finanzierung
               und Wachstum.
-            </p>
-            <p>Das Problem ist nicht die Nachfrage.</p>
+            </p >
+            <p className="text-ink">Das Problem ist nicht die Nachfrage.</p>
             <p className="text-ink">
               Das Problem ist, als Berater zur richtigen Zeit davon zu erfahren.
             </p>

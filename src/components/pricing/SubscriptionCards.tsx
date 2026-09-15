@@ -34,20 +34,14 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
           / Monat
         </span>
       </p>
-      <p className={cn("meta mt-3", featured ? "text-card/55" : "text-muted")}>
-        {plan.includedLeads} Leads inklusive
-      </p>
-      <p
-        className={cn(
-          "mt-5 max-w-md text-[15px] leading-relaxed",
-          featured ? "text-card/80" : "text-muted"
-        )}
-      >
-        {plan.description}
-      </p>
 
       <ul className="mt-8 flex-1 space-y-3">
-        {plan.features.map((feature) => (
+        {plan.features
+          .map((feature) =>
+            /rückerstattung/i.test(feature) ? "Exklusive Leads" : feature
+          )
+          .filter((feature, index, list) => list.indexOf(feature) === index)
+          .map((feature) => (
           <li
             key={feature}
             className={cn("flex items-start gap-3 text-sm", featured ? "text-card" : "text-ink")}
@@ -92,7 +86,9 @@ export function SubscriptionCards({ config }: SubscriptionCardsProps) {
           </div>
         </FadeBlur>
 
-        <div className="mt-14 grid gap-px border border-line bg-line md:grid-cols-3">
+        <p className="display mt-14 text-2xl text-ink sm:text-3xl">Alle Leads sind exklusiv.</p>
+
+        <div className="mt-8 grid gap-px border border-line bg-line md:grid-cols-3">
           {plans.map((plan, index) => (
             <FadeBlur key={plan.slug} delay={index * 120} className="h-full">
               <PlanCard plan={plan} featured={plan.featured} />

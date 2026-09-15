@@ -1,5 +1,6 @@
 import { FadeBlur } from "@/components/ui/FadeBlur";
 import { StockImage } from "@/components/ui/StockImage";
+import { breakSentences } from "@/lib/sentences";
 import { stockPhotos } from "@/lib/stock-photos";
 
 const highlights = [
@@ -23,11 +24,6 @@ const highlights = [
     title: "Intent",
     text: "Ein Unternehmen hat Bedarf geäußert. Das ist der Unterschied zur Kaltakquise.",
   },
-  {
-    n: "05",
-    title: "Endgültig",
-    text: "Digitale Lead-Daten sind nicht erstattungsfähig. Der Kauf ist verbindlich.",
-  },
 ];
 
 export function PremiumPositioning() {
@@ -37,14 +33,14 @@ export function PremiumPositioning() {
         <FadeBlur className="lg:sticky lg:top-28">
           <p className="eyebrow">Positionierung</p>
           <h2 className="display mt-6 max-w-[14ch] text-4xl text-ink sm:text-5xl">
-            Keine Kontaktliste. Eine Geschäftschance.
+            {breakSentences("Keine Kontaktliste. Eine Geschäftschance.")}
           </h2>
 
           <div className="mt-10 max-w-md space-y-5 text-[1.05rem] leading-[1.7] text-muted">
             <p>Leiter verkauft keine anonymen Datensätze und keine alten Firmenlisten.</p>
             <p>
-              Wir konzentrieren uns auf konkrete Anfragen von Unternehmen mit einem aktuellen
-              Beratungsbedarf.
+              Wir konzentrieren uns auf konkrete Anfragen von Unternehmen und Gründern mit einem
+              aktuellen Beratungsbedarf.
             </p>
           </div>
 
@@ -62,7 +58,9 @@ export function PremiumPositioning() {
                 <span className="meta pt-1 text-brass">{item.n}</span>
                 <div>
                   <p className="display text-2xl text-ink">{item.title}</p>
-                  <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{item.text}</p>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+                    {breakSentences(item.text)}
+                  </p>
                 </div>
               </FadeBlur>
             </li>

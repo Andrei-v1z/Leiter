@@ -241,7 +241,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted">Leads inklusive</label>
+                  <label className="text-xs text-muted">Leads exklusiv</label>
                   <input
                     type="number"
                     value={plan.includedLeads}

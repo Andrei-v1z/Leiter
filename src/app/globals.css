@@ -18,6 +18,41 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    hyphens: auto;
+    hyphenate-limit-chars: 6 3 3;
+  }
+
+  body {
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    background-color: var(--color-paper);
+  }
+
+  main p,
+  main li,
+  footer p,
+  article p {
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  nav,
+  button,
+  label,
+  .display,
+  .price,
+  .meta,
+  .eyebrow {
+    text-align: start;
+    hyphens: none;
   }
 
   body {

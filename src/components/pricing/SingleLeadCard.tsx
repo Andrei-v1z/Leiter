@@ -3,6 +3,7 @@
 import { CheckoutButton } from "@/components/checkout/CheckoutButton";
 import { FadeBlur } from "@/components/ui/FadeBlur";
 import { formatPrice } from "@/lib/pricing-utils";
+import { breakSentences } from "@/lib/sentences";
 import type { PricingConfig } from "@/lib/pricing-types";
 
 interface SingleLeadCardProps {
@@ -15,7 +16,7 @@ const features = [
   "Kontaktinformationen",
   "Standort",
   "Branche",
-  "Keine Rückerstattung",
+  "Exklusiv",
 ];
 
 export function SingleLeadCard({ config }: SingleLeadCardProps) {
@@ -31,8 +32,9 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
             <span className="price text-6xl text-card">{formatPrice(price)}</span>
           </div>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-card/60">
-            Ein Lead. Ab {formatPrice(price)}. Ab 5 Leads gilt der Mengenrabatt. Digitale Daten,
-            keine Rückerstattung.
+            {breakSentences(
+              `Ein Lead. Ab ${formatPrice(price)}. Ab 5 Leads gilt der Mengenrabatt. Jeder Lead ist exklusiv.`
+            )}
           </p>
         </div>
         <div className="mt-10">

@@ -20,7 +20,7 @@ export function PriceAnchoring({ basePrice }: PriceAnchoringProps) {
     "Direkter Kontakt",
     `Ab ${formatPrice(basePrice)} pro Lead`,
     "Ab 5 Leads Mengenrabatt",
-    "Keine Rückerstattung",
+    "Exklusive Leads",
   ];
 
   return (

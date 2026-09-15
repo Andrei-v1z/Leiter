@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { FadeBlur } from "@/components/ui/FadeBlur";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing-utils";
+import { breakSentences } from "@/lib/sentences";
 import type { PricingConfig } from "@/lib/pricing-types";
 
 interface VolumePricingProps {
@@ -33,8 +34,9 @@ export function VolumePricing({ config }: VolumePricingProps) {
             Je mehr du kaufst, desto weniger zahlst du pro Lead.
           </blockquote>
           <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-muted">
-            Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gibt es Rabatt.
-            Je mehr du kaufst, desto günstiger wird der Stückpreis. Keine Rückerstattung.
+            {breakSentences(
+              `Leads ab ${formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gibt es Rabatt. Je mehr du kaufst, desto günstiger wird der Stückpreis.`
+            )}
           </p>
           <div className="mt-8">
             <Button href="/preise#pakete" variant="outline">

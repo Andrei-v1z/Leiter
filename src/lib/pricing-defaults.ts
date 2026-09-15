@@ -1,7 +1,7 @@
 import type { PricingConfig } from "./pricing-types";
 import { BASE_LEAD_PRICE, buildVolumeTiers } from "./pricing-utils";
 
-export const PRICING_SCHEMA_VERSION = 2;
+export const PRICING_SCHEMA_VERSION = 3;
 
 export const defaultPricingConfig: PricingConfig = {
   singleLead: {
@@ -39,7 +39,7 @@ export const defaultPricingConfig: PricingConfig = {
         "80 € pro Lead",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
-        "Keine Rückerstattung",
+        "Exklusive Leads",
       ],
       cta: "Zugang wählen",
     },
@@ -56,7 +56,7 @@ export const defaultPricingConfig: PricingConfig = {
         "70 € pro Lead · 10 € Rabatt",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
-        "Keine Rückerstattung",
+        "Exklusive Leads",
       ],
       cta: "Atelier wählen",
     },
@@ -73,7 +73,7 @@ export const defaultPricingConfig: PricingConfig = {
         "65 € pro Lead · 15 € Rabatt",
         "Kontakt und Anfrage enthalten",
         "Monatlich kündbar",
-        "Keine Rückerstattung",
+        "Exklusive Leads",
       ],
       cta: "Kanzlei wählen",
     },

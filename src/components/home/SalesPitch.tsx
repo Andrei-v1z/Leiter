@@ -21,7 +21,7 @@ export function SalesPitch({ config, variant = "full" }: SalesPitchProps) {
               Ein kalter Kontakt kostet Zeit. Ein warmer Lead kann einen Kunden bringen.
             </blockquote>
             <p className="mt-8 max-w-xl text-[1.05rem] leading-[1.7] text-muted">
-              Mit Leiter erhältst du frische B2B-Anfragen von Unternehmen mit konkretem
+              Mit Leiter erhältst du frische B2B-Anfragen von Unternehmen und Gründern mit konkretem
               Beratungsbedarf.
             </p>
             <p className="meta mt-6 text-brass">
@@ -52,7 +52,7 @@ export function SalesPitch({ config, variant = "full" }: SalesPitchProps) {
           <div className="mt-10 space-y-5 text-[1.08rem] leading-[1.7] text-muted">
             <p>Weil du nicht für eine E-Mail-Adresse bezahlst.</p>
             <p>
-              Du bezahlst dafür, dass ein Unternehmen bereits einen konkreten Bedarf geäußert hat,
+              Du bezahlst dafür, dass ein Unternehmen bereits einen konkreten Bedarf geäußert hat
               und du die Möglichkeit bekommst, genau dann Kontakt aufzunehmen, wenn dieser Bedarf
               aktuell ist.
             </p>
