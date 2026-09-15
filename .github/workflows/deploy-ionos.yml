@@ -11,7 +11,7 @@ concurrency:
 
 env:
   IONOS_SSH_HOST: access-5019302200.webspace-host.com
-  IONOS_SSH_USERNAME: su1846070
+  IONOS_SSH_USERNAME: su1149847
   IONOS_SSH_PATH: Leiter
 
 jobs:
@@ -128,7 +128,7 @@ jobs:
           SSHPASS: ${{ secrets.IONOS_SSH_PASSWORD }}
         run: |
           if [ -z "$SSHPASS" ]; then
-            echo "::error::Add repository secret IONOS_SSH_PASSWORD (same value as Andrei-v1z/aethoncg.com)."
+            echo "::error::Add repository secret IONOS_SSH_PASSWORD for user su1149847."
             exit 1
           fi
           sudo apt-get update -qq

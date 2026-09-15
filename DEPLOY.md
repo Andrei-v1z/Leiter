@@ -2,10 +2,10 @@
 
 `leiter.fr` shows Cloudflare **525 SSL handshake failed** because Cloudflare is proxying HTTPS to IONOS, and IONOS has no certificate for `leiter.fr`. The GitHub → IONOS upload also failed: the workflow used `IONOS_FTP_*` secrets that are not on this repo.
 
-Working IONOS account (same as [aethoncg.com](https://github.com/Andrei-v1z/aethoncg.com)):
+Working IONOS SSH account for Leiter:
 
 - SSH host: `access-5019302200.webspace-host.com`
-- SSH user: `su1846070`
+- SSH user: `su1149847`
 - Remote folder: `/Leiter/`
 - Web IP: `217.160.0.114`
 
@@ -32,7 +32,7 @@ Do this in the Cloudflare dashboard for `leiter.fr` (and `leiter.be` if it is al
 
 In [Leiter repo secrets](https://github.com/Andrei-v1z/Leiter/settings/secrets/actions) add:
 
-- `IONOS_SSH_PASSWORD` — same value as `Andrei-v1z/aethoncg.com`
+- `IONOS_SSH_PASSWORD` — IONOS SFTP/SSH password for `su1149847`
 
 Optional: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `ADMIN_TOKEN`.
 
