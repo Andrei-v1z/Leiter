@@ -5,6 +5,7 @@ import { SalesPitch } from "@/components/home/SalesPitch";
 import { PremiumPositioning } from "@/components/pricing/PremiumPositioning";
 import { PriceAnchoring } from "@/components/pricing/PriceAnchoring";
 import { SubscriptionCards } from "@/components/pricing/SubscriptionCards";
+import { LeadCategories } from "@/components/home/LeadCategories";
 
 export default async function HomePage() {
   const config = await getPricingConfig();
@@ -13,6 +14,7 @@ export default async function HomePage() {
     <>
       <Hero config={config} />
       <HomepagePriceTeaser config={config} />
+      <LeadCategories />
       <SubscriptionCards config={config} />
       <PremiumPositioning />
       <SalesPitch config={config} variant="short" />

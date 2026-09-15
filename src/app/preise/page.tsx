@@ -4,6 +4,7 @@ import { FadeBlur } from "@/components/ui/FadeBlur";
 import { StockImage } from "@/components/ui/StockImage";
 import { SingleLeadCard } from "@/components/pricing/SingleLeadCard";
 import { VolumePricing } from "@/components/pricing/VolumePricing";
+import { LeadCategories } from "@/components/home/LeadCategories";
 import { SubscriptionCards } from "@/components/pricing/SubscriptionCards";
 import { PremiumPositioning } from "@/components/pricing/PremiumPositioning";
 import { PriceAnchoring } from "@/components/pricing/PriceAnchoring";
@@ -60,6 +61,7 @@ export default async function PreisePage() {
 
       <SubscriptionCards config={config} />
       <VolumePricing config={config} />
+      <LeadCategories />
       <PremiumPositioning />
       <PriceAnchoring basePrice={config.singleLead.basePrice} />
       <SalesPitch config={config} variant="full" />
