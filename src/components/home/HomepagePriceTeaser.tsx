@@ -32,8 +32,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
               {formatPrice(basePrice)}
             </p>
             <p className="mt-4 max-w-xs text-sm text-card/55">
-              Leads ab {formatPrice(basePrice)}. Ab 5 Leads gilt der Mengenrabatt. Keine
-              Rückerstattung.
+              Leads ab {formatPrice(basePrice)}. Ab 5 Leads gilt der Mengenrabatt.
             </p>
           </FadeBlur>
 

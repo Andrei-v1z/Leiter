@@ -14,8 +14,7 @@ if (preg_match('#/api/pricing/?$#', $path) === 1 && $method === 'GET') {
 }
 
 if (preg_match('#/api/checkout/?$#', $path) === 1 && $method === 'POST') {
-    handle_checkout();
-    exit;
+    fail('Kauf und Zahlung sind noch nicht möglich. Bitte warte auf den Rollout der Software. Bald verfügbar.', 503);
 }
 
 http_response_code(404);

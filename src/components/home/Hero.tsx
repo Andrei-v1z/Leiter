@@ -17,18 +17,19 @@ export function Hero({ config }: HeroProps) {
     <section className="px-5 pt-16 pb-20 sm:px-8 lg:px-12 lg:pt-28 lg:pb-32">
       <div className="page-wrap grid items-stretch gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
         <FadeBlur className="border-l border-brass/70 pl-6 sm:pl-8" immediate>
-          <p className="eyebrow">Dossier 01 · Nachfrage</p>
-          <h1 className="display mt-8 max-w-[13ch] text-[2.85rem] text-ink sm:text-6xl lg:text-[4.75rem]">
+          <h1 className="display max-w-[13ch] text-[2.85rem] text-ink sm:text-6xl lg:text-[4.75rem]">
             Dein Vertrieb sollte nicht hinter Kunden herlaufen.
           </h1>
 
           <div className="mt-10 max-w-[38rem] space-y-4 text-[1.05rem] leading-[1.7] text-muted">
             <p>
-              Unternehmen suchen täglich nach Beratung, Fördermitteln, Digitalisierung, Finanzierung
+              Unternehmen und Gründer suchen täglich nach Beratung, Fördermitteln, Digitalisierung, Finanzierung
               und Wachstum.
             </p>
             <p>Das Problem ist nicht die Nachfrage.</p>
-            <p className="text-ink">Das Problem ist, zur richtigen Zeit davon zu erfahren.</p>
+            <p className="text-ink">
+              Das Problem ist, als Berater zur richtigen Zeit davon zu erfahren.
+            </p>
           </div>
 
           <div className="mt-12 flex flex-wrap items-center gap-8">
@@ -52,17 +53,27 @@ export function Hero({ config }: HeroProps) {
               priority
             />
             <div className="relative z-10 flex h-full min-h-[28rem] flex-col justify-end bg-gradient-to-t from-navy via-navy/70 to-navy/10 p-8 sm:p-10">
-              <p className="meta text-brass">Was Leiter löst</p>
-              <div className="mt-6 max-w-sm space-y-4 text-[15px] leading-relaxed text-card/80">
-                <p>Aktuelle B2B-Anfragen, zusammengeführt mit spezialisierten Beratern.</p>
-                <p className="text-card">Dann entscheidest du, welchen Lead du kaufst.</p>
-              </div>
+              <p className="meta text-brass"></p>
+              <p className="display mt-4 max-w-[16ch] text-2xl leading-snug text-card sm:text-[1.75rem]">
+                Leads für Berater.
+              </p>
+              <ul className="mt-6 grid max-w-sm grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+                {[
+                  "Unternehmensberatung",
+                  "Fördermittel",
+                  "Digitalisierung",
+                  "Finanzierung",
+                  "M&A",
+                ].map((group) => (
+                  <li key={group} className="flex items-center gap-2 text-sm text-card/80">
+                    <span className="block h-px w-3 shrink-0 bg-brass" />
+                    {group}
+                  </li>
+                ))}
+              </ul>
               <div className="mt-8 border-t border-white/15 pt-6">
                 <p className="meta text-card/40">ab</p>
                 <p className="price mt-3 text-5xl text-card sm:text-6xl">{formatPrice(basePrice)}</p>
-                <p className="mt-3 text-sm text-card/60">
-                  pro Lead. Ab 5 Leads Rabatt. Keine Rückerstattung.
-                </p>
               </div>
             </div>
           </aside>

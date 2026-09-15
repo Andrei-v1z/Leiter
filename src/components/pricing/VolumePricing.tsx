@@ -33,8 +33,8 @@ export function VolumePricing({ config }: VolumePricingProps) {
             Je mehr du kaufst, desto weniger zahlst du pro Lead.
           </blockquote>
           <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-muted">
-            Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gibt es Rabatt —
-            je mehr du kaufst, desto günstiger wird der Stückpreis. Keine Rückerstattung.
+            Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gibt es Rabatt.
+            Je mehr du kaufst, desto günstiger wird der Stückpreis. Keine Rückerstattung.
           </p>
           <div className="mt-8">
             <Button href="/preise#pakete" variant="outline">

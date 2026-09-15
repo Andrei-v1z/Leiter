@@ -10,13 +10,13 @@ const highlights = [
   },
   {
     n: "02",
-    title: "Relevanz",
-    text: "Branche, Standort und Bedarf sind sichtbar, bevor du kaufst.",
+    title: "Qualität",
+    text: "Die Zuteilung ist zufällig. Jeder Lead gehört zur Spitze am Markt.",
   },
   {
     n: "03",
     title: "Klarheit",
-    text: "Du kaufst die Anfrage und den Kontakt. Kein Dashboard, keine versteckten Stufen.",
+    text: "Du kaufst die Anfrage und den Kontakt. Kein Dashboard, keine versteckten Stufen. Ein Import in MS Excel, Google Sheets oder andere Software ist nach Gespräch mit dem Support möglich.",
   },
   {
     n: "04",

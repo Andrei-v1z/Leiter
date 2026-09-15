@@ -17,8 +17,10 @@ export function CategoryPricingGrid({ config }: CategoryPricingGridProps) {
           <p className="eyebrow">Kategorien</p>
           <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">Leads nach Kategorie</h2>
           <p className="mt-5 max-w-xl text-muted">
-            Jeder Lead startet bei {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads gilt der
-            Mengenrabatt. Kein Dashboard, keine Exklusiv-Stufen. Mit dem Kauf gelten die AGB.
+            Du wählst eine Kategorie, nicht den einzelnen Lead. Die Zuteilung ist zufällig. Jeder
+            Lead gehört zur Spitze am Markt. Ab {formatPrice(config.singleLead.basePrice)}, Rabatt
+            ab 5 Leads. Kauf und Zahlung sind noch nicht möglich. Bitte warte auf den Rollout der
+            Software. Bald verfügbar.
           </p>
         </FadeBlur>
 

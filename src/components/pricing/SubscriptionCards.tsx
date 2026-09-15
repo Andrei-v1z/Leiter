@@ -86,10 +86,10 @@ export function SubscriptionCards({ config }: SubscriptionCardsProps) {
           <h2 className="display mt-6 text-4xl text-ink sm:text-5xl">
             Ein Abo für kontinuierliche Nachfrage.
           </h2>
-          <p className="mt-6 max-w-xl text-[1.05rem] leading-[1.7] text-muted">
-            Einzelne Leads ab {formatPrice(config.singleLead.basePrice)}. Ab 5 Leads und in den
-            größeren Abos gilt der Mengenrabatt.
-          </p>
+          <div className="mt-6 max-w-xl space-y-2 text-[1.05rem] leading-[1.7] text-muted">
+            <p>Einzelne Leads ab {formatPrice(config.singleLead.basePrice)}.</p>
+            <p>Ab 5 Leads und in den größeren Abos gilt der Mengenrabatt.</p>
+          </div>
         </FadeBlur>
 
         <div className="mt-14 grid gap-px border border-line bg-line md:grid-cols-3">
