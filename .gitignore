@@ -32,8 +32,11 @@ yarn-error.log*
 .env*.local
 .env
 
-# data (pricing config - keep in production with proper backup)
+# data (pricing config and waitlist - keep in production with proper backup)
 /data/pricing.json
+/data/newsletter.json
+/data/newsletter.csv
+/data/emails.txt
 
 # typescript
 *.tsbuildinfo

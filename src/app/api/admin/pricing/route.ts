@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { PricingConfig } from "@/lib/pricing-types";
+import { isAdminRequest } from "@/lib/admin-auth";
 import { getPricingConfig, updatePricingConfig } from "@/lib/pricing-store";
 
-function isAuthorized(request: NextRequest): boolean {
-  const token = request.headers.get("x-admin-token");
-  const expected = process.env.ADMIN_TOKEN ?? "leiter-admin-dev";
-  return token === expected;
-}
-
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const config = await getPricingConfig();
@@ -17,7 +12,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAdminRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

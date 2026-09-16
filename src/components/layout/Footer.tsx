@@ -55,7 +55,7 @@ export function Footer() {
 
         <div className="mt-16 border-t border-white/10 pt-8">
           <p className="meta text-card/35">
-            © 2026 Leiter.be · Bright Pixel Advertisement Agency LLC.
+            © 2026 Leiter · Bright Pixel Advertisement Agency LLC.
           </p>
         </div>
       </FadeBlur>

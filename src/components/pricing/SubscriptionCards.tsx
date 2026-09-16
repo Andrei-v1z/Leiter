@@ -1,5 +1,5 @@
-import { CheckoutButton } from "@/components/checkout/CheckoutButton";
 import { FadeBlur } from "@/components/ui/FadeBlur";
+import { WaitlistButton } from "@/components/pricing/WaitlistButton";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig, SubscriptionPlan } from "@/lib/pricing-types";
@@ -9,6 +9,10 @@ interface SubscriptionCardsProps {
 }
 
 function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured?: boolean }) {
+  const features = [
+    ...plan.features.filter((feature) => !/rückerstattung/i.test(feature)),
+    "Keine Rückerstattung",
+  ];
   return (
     <article
       className={cn(
@@ -36,12 +40,7 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
       </p>
 
       <ul className="mt-8 flex-1 space-y-3">
-        {plan.features
-          .map((feature) =>
-            /rückerstattung/i.test(feature) ? "Exklusive Leads" : feature
-          )
-          .filter((feature, index, list) => list.indexOf(feature) === index)
-          .map((feature) => (
+        {features.map((feature) => (
           <li
             key={feature}
             className={cn("flex items-start gap-3 text-sm", featured ? "text-card" : "text-ink")}
@@ -53,15 +52,15 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
       </ul>
 
       <div className="mt-10">
-        <CheckoutButton
-          kind="subscription"
-          slug={plan.slug}
+        <WaitlistButton
+          planName={plan.name}
+          planSlug={plan.slug}
           variant={featured ? "on-ink" : "outline"}
           className="w-full"
           noteClassName={featured ? "text-card/45" : undefined}
         >
           {plan.cta}
-        </CheckoutButton>
+        </WaitlistButton>
       </div>
     </article>
   );

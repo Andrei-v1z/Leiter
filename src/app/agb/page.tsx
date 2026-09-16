@@ -2,9 +2,9 @@ import Link from "next/link";
 import { FadeBlur } from "@/components/ui/FadeBlur";
 
 export const metadata = {
-  title: "AGB · Leiter.be",
+  title: "AGB · Leiter",
   description:
-    "Allgemeine Geschäftsbedingungen von Leiter.be. Digitale Lead-Daten, keine Rückerstattung.",
+    "Allgemeine Geschäftsbedingungen von Leiter. Digitale Lead-Daten, keine Rückerstattung.",
 };
 
 export default function AgbPage() {
@@ -16,7 +16,7 @@ export default function AgbPage() {
           Allgemeine Geschäftsbedingungen
         </h1>
         <p className="mt-4 text-sm text-muted">
-          Diese AGB gelten für den Kauf von B2B-Lead-Daten und Mitgliedschaften auf Leiter.be.
+          Diese AGB gelten für den Kauf von B2B-Lead-Daten und Mitgliedschaften auf Leiter.
           Stand: 2. September 2026.
         </p>
 
@@ -26,7 +26,7 @@ export default function AgbPage() {
             <p className="mt-4 text-muted">
               Anbieter ist Bright Pixel Advertisement Agency LLC, 1309 Coffeen Avenue STE 1200,
               Sheridan, Wyoming 82801, USA. Filing ID: 2026-002045710. E-Mail:
-              support@brightpixel.agency. Leiter.be ist ein Angebot dieses Unternehmens. Siehe auch{" "}
+              support@brightpixel.agency. Leiter ist ein Angebot dieses Unternehmens. Siehe auch{" "}
               <a
                 href="https://brightpixel.agency/"
                 className="text-ink underline"
@@ -42,7 +42,7 @@ export default function AgbPage() {
           <section>
             <h2 className="display text-2xl text-ink">2. Nur Unternehmer</h2>
             <p className="mt-4 text-muted">
-              Leiter.be richtet sich ausschließlich an Unternehmer, Selbstständige und Freiberufler
+              Leiter richtet sich ausschließlich an Unternehmer, Selbstständige und Freiberufler
               im Sinne des § 14 BGB bzw. vergleichbare Unternehmen. Verbraucher sind vom Kauf
               ausgeschlossen. Ein gesetzliches Widerrufsrecht für Verbraucherverträge findet keine
               Anwendung.
@@ -72,7 +72,7 @@ export default function AgbPage() {
           <section>
             <h2 className="display text-2xl text-ink">5. Keine Rückerstattungen</h2>
             <p className="mt-4 text-muted">
-              Leiter.be verkauft digitale Daten. Sobald ein Lead, ein Paket oder ein Abo-Zugang
+              Leiter verkauft digitale Daten. Sobald ein Lead, ein Paket oder ein Abo-Zugang
               bereitgestellt oder einsehbar gemacht wurde, ist der wirtschaftliche Wert der Daten
               übertragen. Rückerstattungen, Gutschriften, Chargebacks ohne anerkannten Rechtsgrund
               und anteilige Erstattungen sind ausgeschlossen, auch bei Nichtnutzung, Teilnutzung,

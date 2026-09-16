@@ -71,6 +71,7 @@ jobs:
           mirror "/Leiter/impressum" "impressum/index.html"
           mirror "/Leiter/datenschutz" "datenschutz/index.html"
           mirror "/Leiter/agb" "agb/index.html"
+          mirror "/Leiter/admin" "admin/index.html"
           mirror "/Leiter/kasse/erfolg" "kasse/erfolg/index.html"
           mirror "/Leiter/kasse/abgebrochen" "kasse/abgebrochen/index.html"
 

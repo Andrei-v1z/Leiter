@@ -2,9 +2,9 @@ import Link from "next/link";
 import { FadeBlur } from "@/components/ui/FadeBlur";
 
 export const metadata = {
-  title: "Impressum · Leiter.be",
+  title: "Impressum · Leiter",
   description:
-    "Impressum von Leiter.be. Betreiber: Bright Pixel Advertisement Agency LLC, Sheridan, Wyoming.",
+    "Impressum von Leiter. Betreiber: Bright Pixel Advertisement Agency LLC, Sheridan, Wyoming.",
 };
 
 export default function ImpressumPage() {
@@ -22,7 +22,7 @@ export default function ImpressumPage() {
           <section>
             <h2 className="display text-2xl text-ink">1. Anbieter</h2>
             <p className="mt-4 text-muted">
-              Leiter.be wird betrieben von:
+              Leiter wird betrieben von:
               <br />
               <br />
               Bright Pixel Advertisement Agency LLC
@@ -109,7 +109,7 @@ export default function ImpressumPage() {
           <section>
             <h2 className="display text-2xl text-ink">6. Verbraucherstreitbeilegung</h2>
             <p className="mt-4 text-muted">
-              Die Leistungen von Leiter.be richten sich an Unternehmen, Selbstständige und
+              Die Leistungen von Leiter richten sich an Unternehmen, Selbstständige und
               Freiberufler und nicht an Verbraucher. Wir sind nicht verpflichtet und nicht bereit,
               an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
             </p>

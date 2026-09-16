@@ -76,6 +76,8 @@ jobs:
           mirror "/impressum" "impressum/index.html"
           mirror "/datenschutz" "datenschutz/index.html"
           mirror "/agb" "agb/index.html"
+          mirror "/intern/atelier-9f2c" "intern/atelier-9f2c/index.html"
+          mirror "/admin" "admin/index.html"
           mirror "/kasse/erfolg" "kasse/erfolg/index.html"
           mirror "/kasse/abgebrochen" "kasse/abgebrochen/index.html"
 
@@ -86,6 +88,7 @@ jobs:
           DirectoryIndex index.html
           Options -Indexes
           RewriteEngine On
+          RewriteRule ^data/ - [F,L]
           RewriteRule ^api(/.*)?$ app-proxy.php [QSA,L]
           RewriteCond %{REQUEST_FILENAME} -f [OR]
           RewriteCond %{REQUEST_FILENAME} -d
@@ -99,13 +102,16 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://leiter.fr' }}
+          NEWSLETTER_NOTIFY_EMAIL: ${{ vars.NEWSLETTER_NOTIFY_EMAIL || 'support@brightpixel.agency' }}
+          ADMIN_USER: ${{ secrets.ADMIN_USER }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         run: |
           python3 - <<'PY'
           import os
           site = os.environ.get("NEXT_PUBLIC_SITE_URL") or "https://leiter.fr"
           lines = ["NODE_ENV=production", f"NEXT_PUBLIC_SITE_URL={site}"]
-          for key in ("STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "ADMIN_TOKEN"):
+          for key in ("STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "ADMIN_USER", "ADMIN_PASSWORD", "ADMIN_TOKEN", "NEWSLETTER_NOTIFY_EMAIL"):
               value = os.environ.get(key, "").strip()
               if value:
                   lines.append(f"{key}={value}")
@@ -134,6 +140,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq sshpass rsync
           sshpass -e rsync -avz \
+            --exclude 'data/' \
             -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
             .ionos-deploy/ \
             "${{ env.IONOS_SSH_USERNAME }}@${{ env.IONOS_SSH_HOST }}:${{ env.IONOS_SSH_PATH }}/"
