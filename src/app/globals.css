@@ -17,9 +17,14 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
     hyphens: auto;
-    hyphenate-limit-chars: 6 3 3;
+    hyphenate-limit-chars: 8 4 4;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
@@ -32,12 +37,23 @@
     background-color: var(--color-paper);
   }
 
+  @media (max-width: 767px) {
+    body {
+      padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    }
+  }
+
   main p,
-  main li,
   footer p,
   article p {
     text-align: justify;
     text-justify: inter-word;
+  }
+
+  main li,
+  article li {
+    text-align: start;
+    hyphens: none;
   }
 
   h1,
@@ -111,6 +127,7 @@
     font-weight: 400;
     letter-spacing: -0.04em;
     line-height: 1;
+    white-space: nowrap;
   }
 
   .display {

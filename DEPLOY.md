@@ -11,7 +11,7 @@ Working IONOS SSH account for Leiter:
 
 ## 1. Stop the 525 on leiter.fr (Cloudflare)
 
-Do this in the Cloudflare dashboard for `leiter.fr` (and `leiter.be` if it is also proxied):
+Do this in the Cloudflare dashboard for Leiter (`leiter.fr`):
 
 1. **SSL/TLS → Overview** → set encryption mode to **Flexible** (temporary). The 525 should disappear immediately.
 2. **DNS** → for `@` and `www`, set the orange cloud to **DNS only** (grey cloud).

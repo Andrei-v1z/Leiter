@@ -19,12 +19,12 @@ export function Footer() {
               <p className="meta text-card/40">Navigation</p>
               <ul className="mt-4 space-y-2 text-sm text-card/70">
                 <li>
-                  <Link href="/preise" className="hover:text-card">
+                  <Link href="/preise" prefetch={false} className="hover:text-card">
                     Preise
                   </Link>
                 </li>
                 <li>
-                  <Link href="/preise#abos" className="hover:text-card">
+                  <Link href="/preise#abos" prefetch={false} className="hover:text-card">
                     Abos
                   </Link>
                 </li>

@@ -45,6 +45,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
               </p>
               <Link
                 href="#abos"
+                prefetch={false}
                 className="meta mt-6 inline-block text-card underline decoration-white/20 underline-offset-4 hover:decoration-brass"
               >
                 Mitgliedschaften ansehen

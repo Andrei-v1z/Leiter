@@ -36,6 +36,7 @@ export function Hero({ config }: HeroProps) {
             <Button href="/preise">Leads entdecken</Button>
             <Link
               href="#abos"
+              prefetch={false}
               className="meta text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink"
             >
               Mitgliedschaften

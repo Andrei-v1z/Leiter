@@ -31,7 +31,7 @@ export function Button({
   disabled = false,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center px-8 py-3 text-[13px] font-medium tracking-[0.02em] transition-colors duration-200",
+    "inline-flex items-center justify-center whitespace-nowrap px-8 py-3 text-[13px] font-medium tracking-[0.02em] transition-colors duration-200",
     variants[variant],
     disabled && "pointer-events-none opacity-50",
     className
@@ -39,7 +39,7 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} prefetch={false} className={classes}>
         {children}
       </Link>
     );

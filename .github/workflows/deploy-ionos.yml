@@ -64,7 +64,10 @@ jobs:
           mirror() {
             local url="$1" dest="$2"
             mkdir -p "$(dirname "$dest")"
-            if curl -sf "http://localhost:3457$url" -o "$dest"; then
+            if curl -sf \
+              -H "X-Forwarded-Proto: https" \
+              -H "X-Forwarded-Host: leiter.fr" \
+              "http://localhost:3457$url" -o "$dest"; then
               echo "mirrored $url -> $dest"
             else
               echo "FAIL $url" >&2
@@ -84,6 +87,14 @@ jobs:
           test -f index.html
           test -f app-proxy.php
 
+          find . -name '*.html' -print0 | xargs -0 sed -i \
+            -e 's#http://leiter.fr#https://leiter.fr#g' \
+            -e 's#http://www.leiter.fr#https://leiter.fr#g' \
+            -e 's#http://leiter.be#https://leiter.fr#g' \
+            -e 's#https://leiter.be#https://leiter.fr#g' \
+            -e 's#Leiter\.be#Leiter#g' \
+            -e 's#leiter\.be#Leiter#g'
+
           cat > .htaccess <<'EOF'
           DirectoryIndex index.html
           Options -Indexes
@@ -93,6 +104,9 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} -f [OR]
           RewriteCond %{REQUEST_FILENAME} -d
           RewriteRule ^ - [L]
+          <IfModule mod_headers.c>
+            Header always set Content-Security-Policy "upgrade-insecure-requests"
+          </IfModule>
           EOF
 
           kill "$(cat /tmp/leiter-serve.pid)" || true
@@ -110,6 +124,8 @@ jobs:
           python3 - <<'PY'
           import os
           site = os.environ.get("NEXT_PUBLIC_SITE_URL") or "https://leiter.fr"
+          if site.startswith("http://") and "leiter.fr" in site:
+              site = "https://" + site[len("http://"):]
           lines = ["NODE_ENV=production", f"NEXT_PUBLIC_SITE_URL={site}"]
           for key in ("STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "ADMIN_USER", "ADMIN_PASSWORD", "ADMIN_TOKEN", "NEWSLETTER_NOTIFY_EMAIL"):
               value = os.environ.get(key, "").strip()

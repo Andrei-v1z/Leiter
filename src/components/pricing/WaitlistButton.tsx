@@ -149,7 +149,7 @@ function WaitlistDialog({
               Danke.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted">
-              Wir schreiben Ihnen, sobald Leiter startet und das Abo {planName} verfügbar ist.
+              Wir schreiben Ihnen, sobald Leiter startet und {planName} verfügbar ist.
             </p>
             <Button type="button" className="mt-8 w-full" onClick={onClose}>
               Fenster schließen

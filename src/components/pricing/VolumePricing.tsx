@@ -99,13 +99,13 @@ export function VolumePricing({ config }: VolumePricingProps) {
             </div>
             <div>
               <p className="meta text-muted">Preis pro Lead</p>
-              <div className="mt-3 flex items-baseline gap-4">
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-2">
                 {selected.perLeadPrice < basePrice && (
-                  <span className="price text-lg text-muted line-through">
+                  <span className="price shrink-0 text-lg text-muted line-through">
                     {formatPrice(basePrice)}
                   </span>
                 )}
-                <span className="price text-5xl text-navy">
+                <span className="price shrink-0 text-5xl text-navy">
                   {formatPrice(selected.perLeadPrice)}
                 </span>
               </div>

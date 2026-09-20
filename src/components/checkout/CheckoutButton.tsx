@@ -1,8 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
-import { CHECKOUT_UNAVAILABLE_MESSAGE } from "@/lib/checkout-availability";
-import { cn } from "@/lib/utils";
+import { WaitlistButton } from "@/components/pricing/WaitlistButton";
 
 type CheckoutKind = "single" | "volume" | "exclusive" | "category" | "subscription";
 
@@ -14,24 +12,49 @@ interface CheckoutButtonProps {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "on-ink";
   className?: string;
   noteClassName?: string;
-  compact?: boolean;
+}
+
+function waitlistMeta(kind: CheckoutKind, slug?: string, quantity?: number) {
+  switch (kind) {
+    case "single":
+      return { planName: "Einzel-Lead", planSlug: "single-lead" };
+    case "volume":
+      return {
+        planName: quantity ? `Lead-Paket (${quantity})` : "Lead-Paket",
+        planSlug: quantity ? `volume-${quantity}` : "volume",
+      };
+    case "exclusive":
+      return { planName: "Exklusiver Lead", planSlug: "exclusive-lead" };
+    case "category":
+      return {
+        planName: slug || "Lead",
+        planSlug: slug ? `category-${slug}` : "category",
+      };
+    case "subscription":
+      return { planName: slug || "Abo", planSlug: slug || "subscription" };
+  }
 }
 
 export function CheckoutButton({
+  kind,
+  slug,
+  quantity,
   children,
   variant = "primary",
   className,
   noteClassName,
-  compact = false,
 }: CheckoutButtonProps) {
+  const { planName, planSlug } = waitlistMeta(kind, slug, quantity);
+
   return (
-    <div>
-      <Button type="button" variant={variant} className={className} disabled>
-        {children}
-      </Button>
-      <p className={cn("mt-3 max-w-sm text-xs leading-relaxed text-muted", noteClassName)}>
-        {compact ? "Bald verfügbar." : CHECKOUT_UNAVAILABLE_MESSAGE}
-      </p>
-    </div>
+    <WaitlistButton
+      planName={planName}
+      planSlug={planSlug}
+      variant={variant}
+      className={className}
+      noteClassName={noteClassName}
+    >
+      {children}
+    </WaitlistButton>
   );
 }
