@@ -412,6 +412,7 @@ function handle_checkout(): void
                     'product_data' => [
                         'name' => $line['name'],
                         'description' => $line['description'],
+                        'tax_code' => 'txcd_10000000',
                     ],
                 ],
             ],
@@ -423,11 +424,6 @@ function handle_checkout(): void
             'unit_amount_eur' => (string) $line['unitAmount'],
             'total_eur' => (string) ($line['unitAmount'] * $quantity),
             'product' => $line['name'],
-        ],
-        'custom_text' => [
-            'submit' => [
-                'message' => 'Mit der Zahlung akzeptieren Sie die AGB. Rückerstattungen sind ausgeschlossen, weil digitale Lead-Daten verkauft werden.',
-            ],
         ],
     ];
 
