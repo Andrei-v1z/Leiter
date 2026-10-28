@@ -31,6 +31,7 @@ export function SingleLeadCard({ config }: SingleLeadCardProps) {
             <span className="meta text-card/45">ab</span>
             <span className="price text-6xl text-card">{formatPrice(price)}</span>
           </div>
+          <p className="mt-2 text-xs text-card/45">zzgl. MwSt.</p>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-card/60">
             {breakSentences(
               `Ein Lead. Ab ${formatPrice(price)}. Ab 5 Leads gilt der Mengenrabatt. Jeder Lead ist exklusiv.`

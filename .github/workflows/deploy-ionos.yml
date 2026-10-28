@@ -99,6 +99,8 @@ jobs:
           DirectoryIndex index.html
           Options -Indexes
           RewriteEngine On
+          RewriteCond %{HTTP_HOST} ^(www\.)?leiter\.be$ [NC]
+          RewriteRule ^ https://leiter.fr%{REQUEST_URI} [R=301,L]
           RewriteRule ^data/ - [F,L]
           RewriteRule ^api(/.*)?$ app-proxy.php [QSA,L]
           RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -124,8 +126,8 @@ jobs:
           python3 - <<'PY'
           import os
           site = os.environ.get("NEXT_PUBLIC_SITE_URL") or "https://leiter.fr"
-          if site.startswith("http://") and "leiter.fr" in site:
-              site = "https://" + site[len("http://"):]
+          if "leiter.be" in site or "leiter.fr" in site:
+              site = "https://leiter.fr"
           lines = ["NODE_ENV=production", f"NEXT_PUBLIC_SITE_URL={site}"]
           for key in ("STRIPE_SECRET_KEY", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "ADMIN_USER", "ADMIN_PASSWORD", "ADMIN_TOKEN", "NEWSLETTER_NOTIFY_EMAIL"):
               value = os.environ.get(key, "").strip()

@@ -7,10 +7,12 @@ import {
 } from "@/lib/checkout-pricing";
 import { getPricingConfig } from "@/lib/pricing-store";
 import { stripeSubscriptionPrices } from "@/lib/stripe-subscription-prices";
+import { prepareSubscriptionCheckout } from "@/lib/subscription-switch";
 import { getSiteUrl, getStripe } from "@/lib/stripe";
 
 interface CheckoutBody extends CheckoutRequest {
   kind: CheckoutKind;
+  email?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,6 +50,20 @@ export async function POST(request: NextRequest) {
   }
 
   const site = getSiteUrl();
+  let customerId: string | undefined;
+  let customerEmail: string | undefined;
+
+  if (line.mode === "subscription") {
+    const decision = await prepareSubscriptionCheckout(stripe, body.email ?? "", body.slug ?? "");
+    if (decision.action === "error") {
+      return NextResponse.json({ error: decision.message }, { status: decision.status });
+    }
+    if (decision.action === "confirm") {
+      return NextResponse.json({ confirmEmail: true, message: decision.message });
+    }
+    customerId = decision.customerId;
+    customerEmail = decision.customerEmail;
+  }
   const priceData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData = {
     currency: "eur",
     product_data: {
@@ -56,6 +72,7 @@ export async function POST(request: NextRequest) {
       tax_code: "txcd_10000000",
     },
     unit_amount: unitCents,
+    tax_behavior: "exclusive",
   };
 
   let lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
@@ -87,6 +104,8 @@ export async function POST(request: NextRequest) {
         total_eur: String(line.unitAmount * line.quantity),
         product: line.name,
       },
+      ...(customerId ? { customer: customerId } : {}),
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
     };
 
     if (line.mode === "payment") {

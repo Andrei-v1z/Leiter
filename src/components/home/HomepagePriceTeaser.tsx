@@ -31,6 +31,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
             <p className="price mt-5 text-6xl text-card sm:text-7xl lg:text-8xl">
               {formatPrice(basePrice)}
             </p>
+            <p className="mt-3 text-xs text-card/45">zzgl. MwSt.</p>
             <p className="mt-4 max-w-xs text-sm text-card/55">
               Leads ab {formatPrice(basePrice)}. Ab 5 Leads gilt der Mengenrabatt.
             </p>
@@ -40,6 +41,7 @@ export function HomepagePriceTeaser({ config }: HomepagePriceTeaserProps) {
             <FadeBlur delay={140} className="max-w-sm border-t border-white/10 pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
               <p className="meta text-brass">Oder im Abo</p>
               <p className="price mt-4 text-4xl text-card">{formatPrice(featured.monthlyPrice)}</p>
+              <p className="mt-2 text-xs text-card/45">zzgl. MwSt.</p>
               <p className="mt-3 text-sm text-card/55">
                 {featured.includedLeads} Leads / Monat · {featured.name}
               </p>

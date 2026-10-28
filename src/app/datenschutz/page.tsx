@@ -63,7 +63,9 @@ export default function DatenschutzPage() {
               Vertrag erforderlichen Angaben: Name, E-Mail-Adresse, Rechnungsadresse sowie
               Zahlungsstatus. Zahlungskartendaten werden von Stripe verarbeitet, nicht auf unseren
               Servern gespeichert. Wenn Sie sich für den Start-Newsletter eintragen, speichern wir
-              Ihre E-Mail-Adresse und das von Ihnen gewählte Abo.
+              Ihre E-Mail-Adresse und das von Ihnen gewählte Abo. Für einen Abo-Wechsel senden
+              wir eine Bestätigungs-E-Mail und speichern den Link 24 Stunden. Der neue Preis gilt
+              ab dem nächsten Abrechnungszeitraum.
             </p>
           </section>
 

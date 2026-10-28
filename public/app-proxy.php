@@ -13,6 +13,16 @@ if (preg_match('#/api/pricing/?$#', $path) === 1 && $method === 'GET') {
     exit;
 }
 
+if (preg_match('#/api/checkout/session/?$#', $path) === 1 && $method === 'GET') {
+    handle_checkout_session();
+    exit;
+}
+
+if (preg_match('#/api/checkout/confirm/?$#', $path) === 1 && $method === 'GET') {
+    handle_checkout_confirm();
+    exit;
+}
+
 if (preg_match('#/api/checkout/?$#', $path) === 1 && $method === 'POST') {
     handle_checkout();
     exit;
@@ -102,6 +112,20 @@ function env_value(string $key, string $fallback = ''): string
         return $fallback;
     }
     return rtrim(trim($value), '/');
+}
+
+function public_site_url(): string
+{
+    $site = env_value('NEXT_PUBLIC_SITE_URL', 'https://leiter.fr');
+    $host = parse_url($site, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return 'https://leiter.fr';
+    }
+    $host = strtolower((string) preg_replace('/^www\./', '', $host));
+    if ($host === 'leiter.fr' || $host === 'leiter.be') {
+        return 'https://leiter.fr';
+    }
+    return rtrim($site, '/');
 }
 
 function default_catalog(): array
@@ -375,6 +399,346 @@ function fail(string $message, int $status = 400)
     exit;
 }
 
+function normalize_email(string $value): string
+{
+    return strtolower(trim($value));
+}
+
+function subscription_catalog(): array
+{
+    return [
+        'zugang' => ['name' => 'Zugang', 'price' => 'price_1UVSh5AZohsks7xNq0fsIWPB'],
+        'atelier' => ['name' => 'Atelier', 'price' => 'price_1UVSh6AZohsks7xN9NlwFxGq'],
+        'kanzlei' => ['name' => 'Kanzlei', 'price' => 'price_1UVSh7AZohsks7xNNWEPlMdO'],
+    ];
+}
+
+function plan_name_for_price(string $priceId): string
+{
+    foreach (subscription_catalog() as $plan) {
+        if ($plan['price'] === $priceId) {
+            return $plan['name'];
+        }
+    }
+    return 'Abo';
+}
+
+function format_de_date(int $unix): string
+{
+    if (class_exists('IntlDateFormatter')) {
+        $formatter = new IntlDateFormatter('de_DE', IntlDateFormatter::LONG, IntlDateFormatter::NONE, 'Europe/Berlin');
+        $formatted = $formatter->format($unix);
+        if (is_string($formatted) && $formatted !== '') {
+            return $formatted;
+        }
+    }
+    return gmdate('d.m.Y', $unix);
+}
+
+function stripe_get(string $path, string $secret): array
+{
+    $ch = curl_init('https://api.stripe.com/v1/' . ltrim($path, '/'));
+    if ($ch === false) {
+        return ['ok' => false, 'error' => 'Stripe-Verbindung fehlgeschlagen.', 'data' => null];
+    }
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPGET => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $secret],
+        CURLOPT_TIMEOUT => 25,
+    ]);
+    $body = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+    if (!is_string($body) || $body === '') {
+        return ['ok' => false, 'error' => $curlError !== '' ? $curlError : 'Stripe-Fehler', 'data' => null];
+    }
+    $decoded = json_decode($body, true);
+    if ($status >= 200 && $status < 300 && is_array($decoded)) {
+        return ['ok' => true, 'error' => '', 'data' => $decoded];
+    }
+    $message = 'Stripe-Fehler';
+    if (is_array($decoded) && isset($decoded['error']['message']) && is_string($decoded['error']['message'])) {
+        $message = $decoded['error']['message'];
+    }
+    return ['ok' => false, 'error' => $message, 'data' => is_array($decoded) ? $decoded : null];
+}
+
+function customers_for_email(string $secret, string $email): array
+{
+    $query = rawurlencode('email:"' . str_replace(['"', '\\'], '', $email) . '"');
+    $searched = stripe_get('customers/search?query=' . $query . '&limit=100', $secret);
+    if ($searched['ok'] && isset($searched['data']['data']) && is_array($searched['data']['data'])) {
+        return $searched['data']['data'];
+    }
+    $listed = stripe_get('customers?email=' . rawurlencode($email) . '&limit=100', $secret);
+    if ($listed['ok'] && isset($listed['data']['data']) && is_array($listed['data']['data'])) {
+        return $listed['data']['data'];
+    }
+    return [];
+}
+
+function subscription_price_from(array $subscription): string
+{
+    $price = $subscription['items']['data'][0]['price']['id'] ?? '';
+    return is_string($price) ? $price : '';
+}
+
+function subscription_period_end(array $subscription): int
+{
+    if (isset($subscription['current_period_end'])) {
+        return (int) $subscription['current_period_end'];
+    }
+    return (int) ($subscription['items']['data'][0]['current_period_end'] ?? 0);
+}
+
+function active_subscriptions_for_email(string $secret, string $email): array
+{
+    $active = ['active' => true, 'trialing' => true, 'past_due' => true, 'unpaid' => true, 'paused' => true];
+    $found = [];
+    foreach (customers_for_email($secret, $email) as $customer) {
+        if (!is_array($customer) || empty($customer['id']) || !is_string($customer['id'])) {
+            continue;
+        }
+        $page = stripe_get('subscriptions?customer=' . rawurlencode($customer['id']) . '&status=all&limit=100', $secret);
+        $rows = $page['ok'] && isset($page['data']['data']) && is_array($page['data']['data']) ? $page['data']['data'] : [];
+        foreach ($rows as $subscription) {
+            if (!is_array($subscription)) {
+                continue;
+            }
+            $status = (string) ($subscription['status'] ?? '');
+            if (isset($active[$status])) {
+                $found[] = $subscription;
+            }
+        }
+    }
+    usort($found, function ($a, $b) {
+        return ((int) ($b['created'] ?? 0)) <=> ((int) ($a['created'] ?? 0));
+    });
+    return $found;
+}
+
+function scheduled_price_id(string $secret, array $subscription): string
+{
+    $scheduleId = $subscription['schedule'] ?? null;
+    if (!is_string($scheduleId) || $scheduleId === '') {
+        return '';
+    }
+    $schedule = stripe_get('subscription_schedules/' . rawurlencode($scheduleId), $secret);
+    $phases = $schedule['ok'] && isset($schedule['data']['phases']) && is_array($schedule['data']['phases'])
+        ? $schedule['data']['phases']
+        : [];
+    if (count($phases) < 2) {
+        return '';
+    }
+    $next = $phases[count($phases) - 1];
+    $price = $next['items'][0]['price'] ?? '';
+    if (is_array($price)) {
+        $price = $price['id'] ?? '';
+    }
+    if (!is_string($price) || $price === '' || $price === subscription_price_from($subscription)) {
+        return '';
+    }
+    return $price;
+}
+
+function plan_change_file(): string
+{
+    return __DIR__ . '/data/plan-change-tokens.json';
+}
+
+function save_plan_change_token(array $token): bool
+{
+    $dir = __DIR__ . '/data';
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return false;
+    }
+    $file = plan_change_file();
+    $handle = fopen($file, 'c+');
+    if ($handle === false) {
+        return false;
+    }
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        return false;
+    }
+    $contents = stream_get_contents($handle);
+    $decoded = is_string($contents) && $contents !== '' ? json_decode($contents, true) : null;
+    $tokens = is_array($decoded) && isset($decoded['tokens']) && is_array($decoded['tokens']) ? $decoded['tokens'] : [];
+    $kept = [];
+    foreach ($tokens as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        if (($row['email'] ?? '') === $token['email'] && empty($row['usedAt'])) {
+            continue;
+        }
+        $kept[] = $row;
+    }
+    $kept[] = $token;
+    rewind($handle);
+    ftruncate($handle, 0);
+    fwrite($handle, json_encode(['tokens' => $kept], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+    return true;
+}
+
+function update_plan_change_tokens(callable $change)
+{
+    $dir = __DIR__ . '/data';
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return null;
+    }
+    $handle = fopen(plan_change_file(), 'c+');
+    if ($handle === false) {
+        return null;
+    }
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        return null;
+    }
+    $contents = stream_get_contents($handle);
+    $decoded = is_string($contents) && $contents !== '' ? json_decode($contents, true) : null;
+    $tokens = is_array($decoded) && isset($decoded['tokens']) && is_array($decoded['tokens']) ? $decoded['tokens'] : [];
+    $result = $change($tokens);
+    $next = $result['tokens'] ?? $tokens;
+    rewind($handle);
+    ftruncate($handle, 0);
+    fwrite($handle, json_encode(['tokens' => $next], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+    return $result['value'] ?? null;
+}
+
+function send_plan_change_mail(string $email, string $currentName, string $nextName, string $link): bool
+{
+    $subject = 'Leiter: Abo-Wechsel bestätigen';
+    $body = "Sie möchten Ihr Leiter-Abo wechseln.\n\nAktuell: {$currentName}\nAb dem nächsten Abrechnungszeitraum: {$nextName}\n\nBis dahin bleibt Ihr aktuelles Abo aktiv. Es wird jetzt nichts zusätzlich berechnet.\n\nWechsel bestätigen: {$link}\n\nDer Link ist 24 Stunden gültig. Wenn Sie das nicht angefordert haben, ignorieren Sie diese E-Mail.\n";
+    $headers = implode("\r\n", [
+        'From: Leiter <noreply@leiter.fr>',
+        'Content-Type: text/plain; charset=UTF-8',
+    ]);
+    return mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+}
+
+function subscription_decision(string $secret, string $email, string $slug): array
+{
+    $catalog = subscription_catalog();
+    if (!isset($catalog[$slug])) {
+        return ['action' => 'error', 'status' => 400, 'message' => 'Abo nicht gefunden'];
+    }
+    $nextPrice = $catalog[$slug]['price'];
+    $nextName = $catalog[$slug]['name'];
+    $subscriptions = active_subscriptions_for_email($secret, $email);
+    if (count($subscriptions) === 0) {
+        $customers = customers_for_email($secret, $email);
+        $customerId = '';
+        if (isset($customers[0]['id']) && is_string($customers[0]['id'])) {
+            $customerId = $customers[0]['id'];
+        }
+        return [
+            'action' => 'checkout',
+            'customerId' => $customerId,
+            'customerEmail' => $customerId === '' ? $email : '',
+        ];
+    }
+
+    $primary = $subscriptions[0];
+    $currentPrice = subscription_price_from($primary);
+    $pending = scheduled_price_id($secret, $primary);
+    if ($pending === $nextPrice) {
+        return [
+            'action' => 'error',
+            'status' => 409,
+            'message' => 'Der Wechsel auf ' . $nextName . ' ist bereits vorgemerkt und gilt ab dem nächsten Abrechnungszeitraum.',
+        ];
+    }
+    if ($currentPrice === $nextPrice && $pending === '') {
+        return [
+            'action' => 'error',
+            'status' => 409,
+            'message' => 'Sie haben das Abo ' . $nextName . ' bereits. Ein zweites Abo ist nicht möglich.',
+        ];
+    }
+
+    $extras = [];
+    foreach (array_slice($subscriptions, 1) as $extra) {
+        if (isset($extra['id']) && is_string($extra['id'])) {
+            $extras[] = $extra['id'];
+        }
+    }
+    $token = bin2hex(random_bytes(32));
+    $site = public_site_url();
+    $link = $site . '/api/checkout/confirm?token=' . $token;
+    $record = [
+        'token' => $token,
+        'email' => $email,
+        'subscriptionId' => (string) $primary['id'],
+        'newPriceId' => $nextPrice,
+        'extraSubscriptionIds' => $extras,
+        'expiresAt' => gmdate('c', time() + 86400),
+    ];
+    if (!save_plan_change_token($record)) {
+        return ['action' => 'error', 'status' => 500, 'message' => 'Die Bestätigung konnte nicht gespeichert werden.'];
+    }
+    if (!send_plan_change_mail($email, plan_name_for_price($currentPrice), $nextName, $link)) {
+        update_plan_change_tokens(function (array $tokens) use ($token) {
+            $kept = [];
+            foreach ($tokens as $row) {
+                if (is_array($row) && ($row['token'] ?? '') === $token && empty($row['usedAt'])) {
+                    continue;
+                }
+                $kept[] = $row;
+            }
+            return ['tokens' => $kept, 'value' => true];
+        });
+        return ['action' => 'error', 'status' => 503, 'message' => 'Die Bestätigung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.'];
+    }
+    return [
+        'action' => 'confirm',
+        'message' => 'Wir haben einen Bestätigungslink an ' . $email . ' geschickt. Der Wechsel gilt ab dem nächsten Abrechnungsmonat, nachdem Sie den Link geöffnet haben. Bis dahin bleibt Ihr aktuelles Abo aktiv.',
+    ];
+}
+
+function handle_checkout_session(): void
+{
+    $id = isset($_GET['session_id']) && is_string($_GET['session_id']) ? $_GET['session_id'] : '';
+    if (preg_match('/^cs_(live|test)_[A-Za-z0-9]+$/', $id) !== 1) {
+        fail('Kauf nicht gefunden', 404);
+    }
+    $secret = env_value('STRIPE_SECRET_KEY');
+    if ($secret === '') {
+        fail('Stripe ist nicht konfiguriert. Bitte den Secret Key prüfen.', 503);
+    }
+    $loaded = stripe_get('checkout/sessions/' . rawurlencode($id) . '?expand[]=line_items', $secret);
+    if (!$loaded['ok'] || !is_array($loaded['data'])) {
+        fail('Kauf nicht gefunden', 404);
+    }
+    $session = $loaded['data'];
+    if (($session['status'] ?? '') !== 'complete') {
+        fail('Kauf nicht gefunden', 404);
+    }
+    $product = '';
+    if (isset($session['metadata']['product']) && is_string($session['metadata']['product'])) {
+        $product = $session['metadata']['product'];
+    }
+    if ($product === '' && isset($session['line_items']['data'][0]['description']) && is_string($session['line_items']['data'][0]['description'])) {
+        $product = $session['line_items']['data'][0]['description'];
+    }
+    $mode = ($session['mode'] ?? '') === 'subscription' ? 'subscription' : 'payment';
+    echo json_encode([
+        'product' => $product !== '' ? $product : 'Leiter',
+        'mode' => $mode,
+        'amount' => (int) ($session['amount_total'] ?? 0),
+        'currency' => is_string($session['currency'] ?? null) ? $session['currency'] : 'eur',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 function handle_checkout(): void
 {
     $raw = file_get_contents('php://input');
@@ -396,7 +760,7 @@ function handle_checkout(): void
         fail('Stripe ist nicht konfiguriert. Bitte den Secret Key prüfen.', 503);
     }
 
-    $site = env_value('NEXT_PUBLIC_SITE_URL', 'https://leiter.fr');
+    $site = public_site_url();
     $payload = [
         'mode' => $line['mode'],
         'locale' => 'de',
@@ -414,6 +778,7 @@ function handle_checkout(): void
                         'description' => $line['description'],
                         'tax_code' => 'txcd_10000000',
                     ],
+                    'tax_behavior' => 'exclusive',
                 ],
             ],
         ],
@@ -429,6 +794,18 @@ function handle_checkout(): void
 
     if ($line['mode'] === 'subscription') {
         $slug = isset($body['slug']) && is_string($body['slug']) ? $body['slug'] : '';
+        $email = isset($body['email']) && is_string($body['email']) ? normalize_email($body['email']) : '';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            fail('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+        }
+        $decision = subscription_decision($secret, $email, $slug);
+        if ($decision['action'] === 'error') {
+            fail((string) $decision['message'], (int) $decision['status']);
+        }
+        if ($decision['action'] === 'confirm') {
+            echo json_encode(['confirmEmail' => true, 'message' => $decision['message']], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         $priceId = subscription_price_id($slug);
         if ($priceId === '') {
             fail('Abo nicht gefunden');
@@ -439,6 +816,11 @@ function handle_checkout(): void
                 'price' => $priceId,
             ],
         ];
+        if ($decision['customerId'] !== '') {
+            $payload['customer'] = $decision['customerId'];
+        } elseif ($decision['customerEmail'] !== '') {
+            $payload['customer_email'] = $decision['customerEmail'];
+        }
     } else {
         $payload['customer_creation'] = 'always';
         $payload['submit_type'] = 'pay';
@@ -462,14 +844,173 @@ function handle_checkout(): void
     exit;
 }
 
+function confirm_page(string $title, string $message, int $status = 200): void
+{
+    http_response_code($status);
+    header('Content-Type: text/html; charset=utf-8');
+    $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+    $safeMessage = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+    echo '<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'
+        . $safeTitle
+        . ' · Leiter</title><style>body{margin:0;background:#f4f1eb;color:#171410;font-family:"IBM Plex Sans",sans-serif}main{max-width:36rem;margin:0 auto;padding:4.5rem 1.5rem}p.eyebrow{color:#9a7544;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase}h1{font-size:2.4rem;font-weight:500;letter-spacing:-.04em;line-height:1.1}p{line-height:1.7;color:#6f6a62}a{color:#171410}</style></head><body><main><p class="eyebrow">Abo</p><h1>'
+        . $safeTitle
+        . '</h1><p>'
+        . $safeMessage
+        . '</p><p><a href="/preise">Zurück zu den Preisen</a></p></main></body></html>';
+    exit;
+}
+
+function apply_scheduled_plan_change(string $secret, string $subscriptionId, string $newPriceId, array $extraIds): array
+{
+    $loaded = stripe_get('subscriptions/' . rawurlencode($subscriptionId), $secret);
+    if (!$loaded['ok'] || !is_array($loaded['data'])) {
+        return ['ok' => false, 'message' => $loaded['error'] !== '' ? $loaded['error'] : 'Das Abo konnte nicht gelesen werden.'];
+    }
+    $subscription = $loaded['data'];
+    $active = ['active' => true, 'trialing' => true, 'past_due' => true, 'unpaid' => true, 'paused' => true];
+    $status = (string) ($subscription['status'] ?? '');
+    if (!isset($active[$status])) {
+        return ['ok' => false, 'message' => 'Dieses Abo ist nicht mehr aktiv.'];
+    }
+    if (!empty($subscription['cancel_at_period_end'])) {
+        $cleared = stripe_request('subscriptions/' . rawurlencode($subscriptionId), $secret, ['cancel_at_period_end' => 'false']);
+        if (!$cleared['ok'] || !is_array($cleared['data'])) {
+            return ['ok' => false, 'message' => $cleared['error'] !== '' ? $cleared['error'] : 'Das Abo konnte nicht fortgesetzt werden.'];
+        }
+        $subscription = $cleared['data'];
+    }
+
+    $currentPrice = subscription_price_from($subscription);
+    $end = subscription_period_end($subscription);
+    if ($currentPrice === '' || $end <= time()) {
+        return ['ok' => false, 'message' => 'Der Abrechnungszeitraum konnte nicht gelesen werden.'];
+    }
+
+    $scheduleId = $subscription['schedule'] ?? null;
+    if (is_array($scheduleId)) {
+        $scheduleId = $scheduleId['id'] ?? null;
+    }
+    if (is_string($scheduleId) && $scheduleId !== '') {
+        $schedule = stripe_get('subscription_schedules/' . rawurlencode($scheduleId), $secret);
+    } else {
+        $schedule = stripe_request('subscription_schedules', $secret, ['from_subscription' => $subscriptionId]);
+    }
+    if (!$schedule['ok'] || !is_array($schedule['data'])) {
+        return ['ok' => false, 'message' => $schedule['error'] !== '' ? $schedule['error'] : 'Der Abo-Zeitraum konnte nicht gelesen werden.'];
+    }
+
+    $phases = isset($schedule['data']['phases']) && is_array($schedule['data']['phases']) ? $schedule['data']['phases'] : [];
+    $now = time();
+    $currentPhase = null;
+    foreach ($phases as $phase) {
+        if (!is_array($phase)) {
+            continue;
+        }
+        $start = (int) ($phase['start_date'] ?? 0);
+        $phaseEnd = isset($phase['end_date']) ? (int) $phase['end_date'] : 0;
+        if ($start <= $now && ($phaseEnd === 0 || $phaseEnd > $now)) {
+            $currentPhase = $phase;
+            break;
+        }
+    }
+    if ($currentPhase === null && isset($phases[0]) && is_array($phases[0])) {
+        $currentPhase = $phases[0];
+    }
+    $startDate = (int) ($currentPhase['start_date'] ?? 0);
+    if ($startDate <= 0 || $end <= $startDate) {
+        return ['ok' => false, 'message' => 'Der aktuelle Abo-Zeitraum konnte nicht gelesen werden.'];
+    }
+
+    $updated = stripe_request('subscription_schedules/' . rawurlencode((string) $schedule['data']['id']), $secret, [
+        'end_behavior' => 'release',
+        'proration_behavior' => 'none',
+        'phases' => [
+            [
+                'items' => [['price' => $currentPrice, 'quantity' => 1]],
+                'start_date' => $startDate,
+                'end_date' => $end,
+                'proration_behavior' => 'none',
+            ],
+            [
+                'items' => [['price' => $newPriceId, 'quantity' => 1]],
+                'proration_behavior' => 'none',
+            ],
+        ],
+    ]);
+    if (!$updated['ok']) {
+        return ['ok' => false, 'message' => $updated['error'] !== '' ? $updated['error'] : 'Der Wechsel konnte nicht gespeichert werden.'];
+    }
+
+    foreach ($extraIds as $extraId) {
+        if (!is_string($extraId) || $extraId === '' || $extraId === $subscriptionId) {
+            continue;
+        }
+        stripe_request('subscriptions/' . rawurlencode($extraId), $secret, ['cancel_at_period_end' => 'true']);
+    }
+
+    $extraNote = count($extraIds) > 0 ? ' Weitere laufende Abos enden zum selben Termin.' : '';
+    return [
+        'ok' => true,
+        'message' => 'Ihr Abo wechselt am ' . format_de_date($end) . ' zu ' . plan_name_for_price($newPriceId)
+            . '. Bis dahin bleibt ' . plan_name_for_price($currentPrice) . ' aktiv. Es wird jetzt nichts zusätzlich berechnet.'
+            . $extraNote,
+    ];
+}
+
+function handle_checkout_confirm(): void
+{
+    $token = isset($_GET['token']) && is_string($_GET['token']) ? $_GET['token'] : '';
+    if (preg_match('/^[a-f0-9]{64}$/', $token) !== 1) {
+        confirm_page('Link ungültig', 'Dieser Bestätigungslink ist ungültig.', 404);
+    }
+
+    $row = update_plan_change_tokens(function (array $tokens) use ($token) {
+        foreach ($tokens as $entry) {
+            if (is_array($entry) && ($entry['token'] ?? '') === $token) {
+                return ['tokens' => $tokens, 'value' => $entry];
+            }
+        }
+        return ['tokens' => $tokens, 'value' => null];
+    });
+    if (!is_array($row)) {
+        confirm_page('Link ungültig', 'Dieser Bestätigungslink ist ungültig.', 404);
+    }
+    if (!empty($row['usedAt']) && is_string($row['resultMessage'] ?? null) && $row['resultMessage'] !== '') {
+        confirm_page('Wechsel vorgemerkt', $row['resultMessage']);
+    }
+    $expires = strtotime((string) ($row['expiresAt'] ?? ''));
+    if ($expires !== false && $expires < time()) {
+        confirm_page('Link abgelaufen', 'Dieser Bestätigungslink ist abgelaufen. Bitte starten Sie den Wechsel erneut.', 410);
+    }
+
+    $secret = env_value('STRIPE_SECRET_KEY');
+    if ($secret === '') {
+        confirm_page('Wechsel nicht möglich', 'Stripe ist nicht konfiguriert. Bitte den Secret Key prüfen.', 503);
+    }
+    $extras = isset($row['extraSubscriptionIds']) && is_array($row['extraSubscriptionIds']) ? $row['extraSubscriptionIds'] : [];
+    $applied = apply_scheduled_plan_change($secret, (string) $row['subscriptionId'], (string) $row['newPriceId'], $extras);
+    if (!$applied['ok']) {
+        confirm_page('Wechsel nicht möglich', $applied['message'], 500);
+    }
+
+    update_plan_change_tokens(function (array $tokens) use ($token, $applied) {
+        $next = [];
+        foreach ($tokens as $entry) {
+            if (is_array($entry) && ($entry['token'] ?? '') === $token) {
+                $entry['usedAt'] = gmdate('c');
+                $entry['resultMessage'] = $applied['message'];
+            }
+            $next[] = $entry;
+        }
+        return ['tokens' => $next, 'value' => true];
+    });
+    confirm_page('Wechsel vorgemerkt', $applied['message']);
+}
+
 function subscription_price_id(string $slug): string
 {
-    $prices = [
-        'zugang' => 'price_1UVSh5AZohsks7xNq0fsIWPB',
-        'atelier' => 'price_1UVSh6AZohsks7xN9NlwFxGq',
-        'kanzlei' => 'price_1UVSh7AZohsks7xNNWEPlMdO',
-    ];
-    return $prices[$slug] ?? '';
+    $catalog = subscription_catalog();
+    return $catalog[$slug]['price'] ?? '';
 }
 
 function resolve_line(array $config, array $body): array

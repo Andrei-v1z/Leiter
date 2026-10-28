@@ -94,8 +94,11 @@ for (const plan of plans) {
       unit_amount: String(plan.amount),
       "recurring[interval]": "month",
       lookup_key: `leiter_${plan.slug}_monthly`,
+      tax_behavior: "exclusive",
       "metadata[slug]": plan.slug,
     });
+  } else if (price.tax_behavior === "unspecified") {
+    price = await stripe(`prices/${price.id}`, { tax_behavior: "exclusive" });
   }
 
   created.push({

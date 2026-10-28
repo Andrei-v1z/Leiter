@@ -91,6 +91,7 @@ export function VolumePricing({ config }: VolumePricingProps) {
             <div>
               <p className="meta text-muted">Gesamtpreis</p>
               <p className="price mt-3 text-5xl text-ink">{formatPrice(selected.totalPrice)}</p>
+              <p className="mt-2 text-xs text-muted">zzgl. MwSt.</p>
               {selected.savings > 0 && (
                 <p className="mt-3 text-sm text-brass">
                   Du sparst {formatPrice(selected.savings)}

@@ -38,6 +38,7 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
           / Monat
         </span>
       </p>
+      <p className={cn("mt-2 text-xs", featured ? "text-card/55" : "text-muted")}>zzgl. MwSt.</p>
 
       <ul className="mt-8 flex-1 space-y-3">
         {features.map((feature) => (
