@@ -1,5 +1,5 @@
+import { CheckoutButton } from "@/components/checkout/CheckoutButton";
 import { FadeBlur } from "@/components/ui/FadeBlur";
-import { WaitlistButton } from "@/components/pricing/WaitlistButton";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing-utils";
 import type { PricingConfig, SubscriptionPlan } from "@/lib/pricing-types";
@@ -52,15 +52,15 @@ function PlanCard({ plan, featured = false }: { plan: SubscriptionPlan; featured
       </ul>
 
       <div className="mt-10">
-        <WaitlistButton
-          planName={plan.name}
-          planSlug={plan.slug}
+        <CheckoutButton
+          kind="subscription"
+          slug={plan.slug}
           variant={featured ? "on-ink" : "outline"}
           className="w-full"
           noteClassName={featured ? "text-card/45" : undefined}
         >
           {plan.cta}
-        </WaitlistButton>
+        </CheckoutButton>
       </div>
     </article>
   );

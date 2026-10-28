@@ -14,7 +14,8 @@ if (preg_match('#/api/pricing/?$#', $path) === 1 && $method === 'GET') {
 }
 
 if (preg_match('#/api/checkout/?$#', $path) === 1 && $method === 'POST') {
-    fail('Kauf und Zahlung sind noch nicht möglich. Bitte warte auf den Rollout der Software. Bald verfügbar.', 503);
+    handle_checkout();
+    exit;
 }
 
 if (preg_match('#/api/newsletter/?$#', $path) === 1 && $method === 'POST') {
@@ -431,7 +432,17 @@ function handle_checkout(): void
     ];
 
     if ($line['mode'] === 'subscription') {
-        $payload['line_items'][0]['price_data']['recurring'] = ['interval' => 'month'];
+        $slug = isset($body['slug']) && is_string($body['slug']) ? $body['slug'] : '';
+        $priceId = subscription_price_id($slug);
+        if ($priceId === '') {
+            fail('Abo nicht gefunden');
+        }
+        $payload['line_items'] = [
+            [
+                'quantity' => 1,
+                'price' => $priceId,
+            ],
+        ];
     } else {
         $payload['customer_creation'] = 'always';
         $payload['submit_type'] = 'pay';
@@ -452,6 +463,17 @@ function handle_checkout(): void
     }
 
     echo json_encode(['url' => $url], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function subscription_price_id(string $slug): string
+{
+    $prices = [
+        'zugang' => 'price_1UVSh5AZohsks7xNq0fsIWPB',
+        'atelier' => 'price_1UVSh6AZohsks7xN9NlwFxGq',
+        'kanzlei' => 'price_1UVSh7AZohsks7xNNWEPlMdO',
+    ];
+    return $prices[$slug] ?? '';
 }
 
 function resolve_line(array $config, array $body): array

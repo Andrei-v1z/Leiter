@@ -80,8 +80,8 @@ export default function DatenschutzPage() {
           <section>
             <h2 className="display text-2xl text-ink">5. Start-Newsletter</h2>
             <p className="mt-4 text-muted">
-              Solange Kauf und Zahlung noch nicht möglich sind, können Sie Ihre E-Mail-Adresse
-              hinterlassen, um über den Rollout von Leiter informiert zu werden. Die Anmeldung ist
+              Wenn Sie sich für Hinweise zum Start von Leiter anmelden, speichern wir Ihre
+              E-Mail-Adresse dafür. Die Anmeldung ist
               freiwillig. Sie können der Nutzung jederzeit per E-Mail an privacy@brightpixel.agency
               widersprechen. Wir speichern die Adresse, bis Sie widersprechen oder der Hinweis auf
               den Start erledigt ist.
