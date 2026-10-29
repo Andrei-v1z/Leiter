@@ -41,9 +41,11 @@ export function renderLeadEmail(template: string, name: string, imageOrigin: str
   const origin = imageOrigin.replace(/\/$/, "");
   const hero = `${origin}/email/hero.jpg`;
   const desk = `${origin}/email/desk.jpg`;
+  const janice = `${origin}/email/janice.jpg`;
   return template
     .replaceAll("__HERO_SRC__", hero)
     .replaceAll("__DESK_SRC__", desk)
+    .replaceAll("__JANICE_SRC__", janice)
     .replaceAll("__GREETING_BLOCK__", greetingBlock(name))
     .replaceAll("__YEAR__", String(new Date().getFullYear()));
 }
@@ -71,10 +73,9 @@ Die Leads ansehen: ${SITE}/preise
 
 Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.
 
-Janice · Leiter
-Bright Pixel Advertisement Agency LLC
-1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA
-Janice@leiter.fr
+Janice
+Deine Nachricht ist angekommen. Ich antworte dir in Kürze, wir sind gerade stark beschäftigt.
+support@brightpixel.agency
 Support: +49 178 7601360
 Impressum: ${SITE}/impressum
 Datenschutz: ${SITE}/datenschutz

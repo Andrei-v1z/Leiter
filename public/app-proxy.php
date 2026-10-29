@@ -461,10 +461,11 @@ function outreach_html(string $name): string
         return '';
     }
     return str_replace(
-        ['__HERO_SRC__', '__DESK_SRC__', '__GREETING_BLOCK__', '__YEAR__'],
+        ['__HERO_SRC__', '__DESK_SRC__', '__JANICE_SRC__', '__GREETING_BLOCK__', '__YEAR__'],
         [
             'https://leiter.fr/email/hero.jpg',
             'https://leiter.fr/email/desk.jpg',
+            'https://leiter.fr/email/janice.jpg',
             outreach_greeting_block($name),
             date('Y'),
         ],
@@ -489,10 +490,9 @@ function outreach_text(string $name): string
         . "Zuzüglich MwSt. Ab fünf Leads sinkt der Preis. Abos sind monatlich kündbar.\n\n"
         . "Die Leads ansehen: https://leiter.fr/preise\n\n"
         . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
-        . "Janice · Leiter\n"
-        . "Bright Pixel Advertisement Agency LLC\n"
-        . "1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA\n"
-        . "Janice@leiter.fr\n"
+        . "Janice\n"
+        . "Deine Nachricht ist angekommen. Ich antworte dir in Kürze, wir sind gerade stark beschäftigt.\n"
+        . "support@brightpixel.agency\n"
         . "Support: +49 178 7601360\n"
         . "Impressum: https://leiter.fr/impressum\n"
         . "Datenschutz: https://leiter.fr/datenschutz\n\n"
@@ -509,9 +509,9 @@ function send_lead_outreach(string $email, string $name): bool
     $boundary = 'leiter-' . bin2hex(random_bytes(12));
     $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
-        'From: Janice <Janice@leiter.fr>',
-        'Reply-To: Janice@leiter.fr, support@brightpixel.agency',
-        'Sender: Janice@leiter.fr',
+        'From: Janice <support@brightpixel.agency>',
+        'Reply-To: support@brightpixel.agency',
+        'Sender: support@brightpixel.agency',
         'Message-ID: <' . $messageId . '>',
         'Date: ' . date('r'),
         'MIME-Version: 1.0',
@@ -531,7 +531,7 @@ function send_lead_outreach(string $email, string $name): bool
         '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=',
         $body,
         $headers,
-        '-fJanice@leiter.fr'
+        '-fsupport@brightpixel.agency'
     );
 }
 
