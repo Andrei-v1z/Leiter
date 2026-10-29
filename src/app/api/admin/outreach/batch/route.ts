@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           "x-admin-user": user,
           "x-admin-password": password,
         },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, copy: false }),
       });
     } catch {
       results.push({ email, name, ok: false, error: "leiter.fr ist nicht erreichbar." });

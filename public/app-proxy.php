@@ -505,7 +505,7 @@ function outreach_text(string $name): string
         . "Wenn du keine Hinweise mehr möchtest, antworte kurz auf diese Mail.\n";
 }
 
-function send_lead_outreach(string $email, string $name): bool
+function send_lead_outreach(string $email, string $name, bool $copy = true): bool
 {
     $html = outreach_html($name);
     $text = outreach_text($name);
@@ -514,7 +514,7 @@ function send_lead_outreach(string $email, string $name): bool
     }
     $subject = '=?UTF-8?B?' . base64_encode('Frische Leads, bevor der Bedarf abkühlt') . '?=';
     $sent = outreach_mail($email, $subject, $html, $text);
-    if ($sent) {
+    if ($sent && $copy) {
         outreach_mail('support@brightpixel.agency', $subject, $html, $text);
     }
     return $sent;
@@ -650,6 +650,8 @@ function handle_outreach_batch(): void
     $sends = outreach_read_sends();
     $results = [];
     $stopped = '';
+    $sampleName = '';
+    $mailed = 0;
     foreach ($incoming as $row) {
         if (!is_array($row)) {
             $results[] = ['email' => '', 'name' => '', 'ok' => false, 'error' => 'Keine gültige E-Mail'];
@@ -677,19 +679,27 @@ function handle_outreach_batch(): void
             $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => 'Diese Adresse hat die Mail gerade bekommen.'];
             continue;
         }
-        if (!send_lead_outreach($email, $name)) {
+        if ($mailed > 0) {
+            sleep(2);
+        }
+        if (!send_lead_outreach($email, $name, false)) {
             $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => 'Die Mail konnte nicht gesendet werden.'];
             continue;
         }
+        if ($sampleName === '' && $name !== '') {
+            $sampleName = $name;
+        }
+        $mailed++;
         $sends = outreach_append($email, $name);
         $results[] = ['email' => $email, 'name' => $name, 'ok' => true, 'error' => ''];
     }
-    $sent = 0;
-    foreach ($results as $result) {
-        if (!empty($result['ok'])) {
-            $sent++;
-        }
+    if ($mailed > 0) {
+        $html = outreach_html($sampleName);
+        $text = outreach_text($sampleName);
+        $subject = '=?UTF-8?B?' . base64_encode('Frische Leads, bevor der Bedarf abkühlt') . '?=';
+        outreach_mail('support@brightpixel.agency', $subject, $html, $text);
     }
+    $sent = $mailed;
     echo json_encode([
         'sent' => $sent,
         'results' => $results,
@@ -714,6 +724,7 @@ function handle_outreach_post(): void
     if ($name === null) {
         fail('Der Name darf nur Buchstaben enthalten.');
     }
+    $copy = !array_key_exists('copy', $body) || $body['copy'] !== false;
     $gate = outreach_gate(outreach_read_sends(), $email);
     if ($gate === 'hour') {
         fail('In der letzten Stunde waren es schon 20 Mails.', 429);
@@ -721,7 +732,7 @@ function handle_outreach_post(): void
     if ($gate === 'repeat') {
         fail('Diese Adresse hat die Mail gerade bekommen.', 429);
     }
-    if (!send_lead_outreach($email, $name)) {
+    if (!send_lead_outreach($email, $name, $copy)) {
         fail('Die Mail konnte nicht gesendet werden.', 502);
     }
     $sends = outreach_append($email, $name);
