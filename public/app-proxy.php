@@ -56,6 +56,19 @@ if (preg_match('#/api/admin/newsletter/?$#', $path) === 1 && $method === 'GET') 
     exit;
 }
 
+if (preg_match('#/api/admin/outreach/?$#', $path) === 1) {
+    if (!admin_authorized()) {
+        fail('Unauthorized', 401);
+    }
+    if ($method === 'GET') {
+        handle_outreach_get();
+    }
+    if ($method === 'POST') {
+        handle_outreach_post();
+    }
+    fail('Methode nicht erlaubt', 405);
+}
+
 if (preg_match('#/api/admin/pricing/?$#', $path) === 1) {
     if (!admin_authorized()) {
         fail('Unauthorized', 401);
@@ -301,6 +314,253 @@ function notify_newsletter_owner(string $email, string $plan): void
         'Content-Type: text/plain; charset=UTF-8',
     ]);
     @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+}
+
+function outreach_log_path(): string
+{
+    return __DIR__ . '/data/outreach-log.json';
+}
+
+function outreach_read_sends(): array
+{
+    $file = outreach_log_path();
+    if (!is_readable($file)) {
+        return [];
+    }
+    $raw = file_get_contents($file);
+    $parsed = is_string($raw) ? json_decode($raw, true) : null;
+    if (!is_array($parsed) || !isset($parsed['sends']) || !is_array($parsed['sends'])) {
+        return [];
+    }
+    return $parsed['sends'];
+}
+
+function outreach_public_sends(array $sends): array
+{
+    $rows = [];
+    foreach ($sends as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $rows[] = [
+            'email' => (string) ($row['email'] ?? ''),
+            'name' => (string) ($row['name'] ?? ''),
+            'createdAt' => (string) ($row['createdAt'] ?? ''),
+        ];
+    }
+    return array_reverse(array_slice($rows, -30));
+}
+
+function outreach_gate(array $sends, string $email): string
+{
+    $now = time();
+    $hour = 0;
+    foreach ($sends as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $at = strtotime((string) ($row['createdAt'] ?? ''));
+        if ($at === false || $now - $at >= 3600) {
+            continue;
+        }
+        $hour++;
+        if ((string) ($row['email'] ?? '') === $email && $now - $at < 60) {
+            return 'repeat';
+        }
+    }
+    if ($hour >= 20) {
+        return 'hour';
+    }
+    return 'ok';
+}
+
+function outreach_append(string $email, string $name): array
+{
+    $dir = __DIR__ . '/data';
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return outreach_read_sends();
+    }
+    $file = outreach_log_path();
+    $handle = fopen($file, 'c+');
+    if ($handle === false) {
+        return outreach_read_sends();
+    }
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        return outreach_read_sends();
+    }
+    $contents = stream_get_contents($handle);
+    $parsed = is_string($contents) && $contents !== '' ? json_decode($contents, true) : null;
+    $sends = is_array($parsed) && isset($parsed['sends']) && is_array($parsed['sends']) ? $parsed['sends'] : [];
+    $sends[] = [
+        'email' => $email,
+        'name' => $name,
+        'createdAt' => gmdate('c'),
+    ];
+    if (count($sends) > 100) {
+        $sends = array_slice($sends, -100);
+    }
+    rewind($handle);
+    ftruncate($handle, 0);
+    fwrite($handle, json_encode(['sends' => $sends], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+    return $sends;
+}
+
+function outreach_recipient(string $value): string
+{
+    $email = normalize_email($value);
+    if (strpbrk($email, "\r\n") !== false || strlen($email) > 254) {
+        return '';
+    }
+    if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        return '';
+    }
+    return $email;
+}
+
+function outreach_clean_name(string $value): ?string
+{
+    $value = trim(str_replace(["\r", "\n", "<", ">"], '', $value));
+    if (function_exists('mb_substr')) {
+        $value = mb_substr($value, 0, 60);
+    } elseif (strlen($value) > 60) {
+        $value = substr($value, 0, 60);
+    }
+    if ($value === '') {
+        return '';
+    }
+    if (preg_match("/^[\\p{L}\\p{M}][\\p{L}\\p{M} .'\\-]{0,59}$/u", $value) !== 1) {
+        return null;
+    }
+    return $value;
+}
+
+function outreach_greeting_block(string $name): string
+{
+    if ($name === '') {
+        return '';
+    }
+    $safe = htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    return '<p style="margin:16px 0 0;font-family:Georgia,\'Times New Roman\',serif;font-size:22px;line-height:1.3;color:#171410;">Hallo ' . $safe . ',</p>';
+}
+
+function outreach_html(string $name): string
+{
+    $template = file_get_contents(__DIR__ . '/email/template.html');
+    if (!is_string($template) || $template === '') {
+        return '';
+    }
+    return str_replace(
+        ['__HERO_SRC__', '__DESK_SRC__', '__GREETING_BLOCK__', '__YEAR__'],
+        [
+            'https://leiter.fr/email/hero.jpg',
+            'https://leiter.fr/email/desk.jpg',
+            outreach_greeting_block($name),
+            date('Y'),
+        ],
+        $template
+    );
+}
+
+function outreach_text(string $name): string
+{
+    $hello = $name !== '' ? "Hallo {$name},\n\n" : '';
+    return $hello . "Der Bedarf ist schon da. Du erfährst ihn nur zu spät.\n\n"
+        . "Unternehmen und Gründer fragen heute nach Beratung. Fördermittel, Digitalisierung, Finanzierung, Wachstum, Nachfolge. Die Anfrage ist konkret. Der Moment ist kurz.\n\n"
+        . "Leiter gibt dir diese Anfrage, solange sie frisch ist. Mit Kontakt. Exklusiv für dich. Keine alte Liste und kein geteilter Datensatz.\n\n"
+        . "01 Die Anfrage ist von heute, nicht aus einem Archiv.\n"
+        . "02 Den Kontakt bekommst nur du.\n"
+        . "03 Du kaufst die Anfrage. Sonst nichts.\n\n"
+        . "Was es kostet\n"
+        . "Ein Lead: 80 €\n"
+        . "Zugang: 240 € für 3 Leads im Monat\n"
+        . "Atelier: 700 € für 10 Leads im Monat\n"
+        . "Kanzlei: 1.950 € für 30 Leads im Monat\n"
+        . "Zuzüglich MwSt. Ab fünf Leads sinkt der Preis. Abos sind monatlich kündbar.\n\n"
+        . "Die Leads ansehen: https://leiter.fr/preise\n\n"
+        . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
+        . "Leiter · Bright Pixel Advertisement Agency LLC\n"
+        . "1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA\n"
+        . "support@brightpixel.agency\n"
+        . "Impressum: https://leiter.fr/impressum\n"
+        . "Datenschutz: https://leiter.fr/datenschutz\n\n"
+        . "Wenn du keine Hinweise mehr möchtest, antworte kurz auf diese Mail.\n";
+}
+
+function send_lead_outreach(string $email, string $name): bool
+{
+    $html = outreach_html($name);
+    $text = outreach_text($name);
+    if ($html === '' || $text === '') {
+        return false;
+    }
+    $boundary = 'leiter-' . bin2hex(random_bytes(12));
+    $headers = implode("\r\n", [
+        'From: Leiter <noreply@leiter.fr>',
+        'Reply-To: support@brightpixel.agency',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
+    ]);
+    $body = "--{$boundary}\r\n"
+        . "Content-Type: text/plain; charset=UTF-8\r\n"
+        . "Content-Transfer-Encoding: base64\r\n\r\n"
+        . chunk_split(base64_encode($text))
+        . "--{$boundary}\r\n"
+        . "Content-Type: text/html; charset=UTF-8\r\n"
+        . "Content-Transfer-Encoding: base64\r\n\r\n"
+        . chunk_split(base64_encode($html))
+        . "--{$boundary}--\r\n";
+    return mail(
+        $email,
+        '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=',
+        $body,
+        $headers
+    );
+}
+
+function handle_outreach_get(): void
+{
+    $template = file_get_contents(__DIR__ . '/email/template.html');
+    echo json_encode([
+        'subject' => 'Frische Anfragen, bevor der Bedarf abkühlt',
+        'sends' => outreach_public_sends(outreach_read_sends()),
+        'template' => is_string($template) ? $template : '',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function handle_outreach_post(): void
+{
+    $raw = file_get_contents('php://input');
+    $body = is_string($raw) ? json_decode($raw, true) : null;
+    if (!is_array($body)) {
+        fail('Bitte eine gültige E-Mail-Adresse eingeben.');
+    }
+    $email = outreach_recipient((string) ($body['email'] ?? ''));
+    if ($email === '') {
+        fail('Bitte eine gültige E-Mail-Adresse eingeben.');
+    }
+    $rawName = isset($body['name']) && is_string($body['name']) ? $body['name'] : '';
+    $name = outreach_clean_name($rawName);
+    if ($name === null) {
+        fail('Der Name darf nur Buchstaben enthalten.');
+    }
+    $gate = outreach_gate(outreach_read_sends(), $email);
+    if ($gate === 'hour') {
+        fail('In der letzten Stunde waren es schon 20 Mails.', 429);
+    }
+    if ($gate === 'repeat') {
+        fail('Diese Adresse hat die Mail gerade bekommen.', 429);
+    }
+    if (!send_lead_outreach($email, $name)) {
+        fail('Die Mail konnte nicht gesendet werden.', 502);
+    }
+    $sends = outreach_append($email, $name);
+    echo json_encode(['ok' => true, 'sends' => outreach_public_sends($sends)], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 function newsletter_subscribers(): array

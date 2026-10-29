@@ -39,6 +39,8 @@ yarn-error.log*
 /data/emails.txt
 /data/plan-change-tokens.json
 /public/data/plan-change-tokens.json
+/data/outreach-log.json
+/public/data/outreach-log.json
 
 # typescript
 *.tsbuildinfo

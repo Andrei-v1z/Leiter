@@ -65,7 +65,9 @@ export default function DatenschutzPage() {
               Servern gespeichert. Wenn Sie sich für den Start-Newsletter eintragen, speichern wir
               Ihre E-Mail-Adresse und das von Ihnen gewählte Abo. Für einen Abo-Wechsel senden
               wir eine Bestätigungs-E-Mail und speichern den Link 24 Stunden. Der neue Preis gilt
-              ab dem nächsten Abrechnungszeitraum.
+              ab dem nächsten Abrechnungszeitraum. Wenn über das interne Werkzeug eine
+              Vertriebsmail an eine gewählte Adresse geht, speichern wir diese Adresse und den
+              Zeitpunkt des Versands.
             </p>
           </section>
 
@@ -75,6 +77,7 @@ export default function DatenschutzPage() {
               Betrieb und Sicherheit der Website: Art. 6 Abs. 1 lit. f DSGVO. Kauf, Lieferung
               digitaler Lead-Daten und Abwicklung von Abonnements: Art. 6 Abs. 1 lit. b DSGVO.
               Newsletter über den Software-Start: Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).
+              Vertriebsmail an eine von uns gewählte Adresse: Art. 6 Abs. 1 lit. f DSGVO.
               Gesetzliche Aufbewahrung: Art. 6 Abs. 1 lit. c DSGVO.
             </p>
           </section>

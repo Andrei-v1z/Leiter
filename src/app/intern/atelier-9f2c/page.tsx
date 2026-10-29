@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { PricingConfig, VolumeTier, CategoryPrice, SubscriptionPlan } from "@/lib/pricing-types";
 import { subscribersToCsv, subscribersToEmailList, type NewsletterSubscriber } from "@/lib/newsletter";
+import { LeadMailDesk } from "@/components/intern/LeadMailDesk";
 
 function authHeaders(user: string, password: string) {
   return {
@@ -21,6 +22,7 @@ export default function InternPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [desk, setDesk] = useState<"mail" | "preise">("mail");
 
   async function loadConfig(adminUser: string, adminPassword: string) {
     const headers = authHeaders(adminUser, adminPassword);
@@ -163,18 +165,41 @@ export default function InternPage() {
 
   return (
     <section className="section-padding">
-      <div className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between">
-          <h1 className="display text-4xl text-ink">Preiskonfiguration</h1>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Speichern…" : "Speichern"}
-          </Button>
+        <div className={desk === "mail" ? "mx-auto max-w-6xl" : "mx-auto max-w-5xl"}>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="display text-4xl text-ink">{desk === "mail" ? "Vertriebsmail" : "Preiskonfiguration"}</h1>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDesk("mail")}
+                className={`px-4 py-2 text-sm ${desk === "mail" ? "bg-navy text-card" : "border border-line text-muted"}`}
+              >
+                Vertriebsmail
+              </button>
+              <button
+                type="button"
+                onClick={() => setDesk("preise")}
+                className={`px-4 py-2 text-sm ${desk === "preise" ? "bg-navy text-card" : "border border-line text-muted"}`}
+              >
+                Preise
+              </button>
+            </div>
+          </div>
+          {desk === "preise" && (
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Speichern…" : "Speichern"}
+            </Button>
+          )}
         </div>
-        {message && (
+        {desk === "preise" && message && (
           <p className={`mt-4 text-sm ${message.includes("erfolgreich") ? "text-brass" : "text-error"}`}>
             {message}
           </p>
         )}
+
+        {desk === "mail" && <LeadMailDesk user={user} password={password} />}
+        {desk === "preise" && (<>
 
         <div className="mt-12 border border-line bg-card p-6">
           <h2 className="text-lg font-semibold text-ink">Einzel-Lead Basispreis</h2>
@@ -391,6 +416,7 @@ export default function InternPage() {
             </ul>
           )}
         </div>
+        </>)}
       </div>
     </section>
   );

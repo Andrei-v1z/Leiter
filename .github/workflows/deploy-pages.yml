@@ -42,6 +42,7 @@ jobs:
           mkdir -p .pages-deploy/_next/static
           cp -a .next/standalone/. .pages-deploy/
           if [ -d public ]; then cp -a public/. .pages-deploy/; fi
+          rm -f .pages-deploy/email/template.html
           cp -a .next/static/. .pages-deploy/_next/static/
 
           cd .pages-deploy

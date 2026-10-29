@@ -102,6 +102,7 @@ jobs:
           RewriteCond %{HTTP_HOST} ^(www\.)?leiter\.be$ [NC]
           RewriteRule ^ https://leiter.fr%{REQUEST_URI} [R=301,L]
           RewriteRule ^data/ - [F,L]
+          RewriteRule ^email/template\.html$ - [F,L]
           RewriteRule ^api(/.*)?$ app-proxy.php [QSA,L]
           RewriteCond %{REQUEST_FILENAME} -f [OR]
           RewriteCond %{REQUEST_FILENAME} -d
