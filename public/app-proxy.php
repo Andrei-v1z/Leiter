@@ -482,9 +482,10 @@ function outreach_text(string $name): string
         . "Zuzüglich MwSt. Ab fünf Leads sinkt der Preis. Abos sind monatlich kündbar.\n\n"
         . "Die Leads ansehen: https://leiter.fr/preise\n\n"
         . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
-        . "Leiter · Bright Pixel Advertisement Agency LLC\n"
+        . "Janice · Leiter\n"
+        . "Bright Pixel Advertisement Agency LLC\n"
         . "1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA\n"
-        . "support@brightpixel.agency\n"
+        . "Janice@leiter.fr\n"
         . "Impressum: https://leiter.fr/impressum\n"
         . "Datenschutz: https://leiter.fr/datenschutz\n\n"
         . "Wenn du keine Hinweise mehr möchtest, antworte kurz auf diese Mail.\n";
@@ -498,9 +499,13 @@ function send_lead_outreach(string $email, string $name): bool
         return false;
     }
     $boundary = 'leiter-' . bin2hex(random_bytes(12));
+    $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
-        'From: Leiter <noreply@leiter.fr>',
-        'Reply-To: support@brightpixel.agency',
+        'From: Janice <Janice@leiter.fr>',
+        'Reply-To: Janice@leiter.fr',
+        'Sender: Janice@leiter.fr',
+        'Message-ID: <' . $messageId . '>',
+        'Date: ' . date('r'),
         'MIME-Version: 1.0',
         'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
     ]);
@@ -517,7 +522,8 @@ function send_lead_outreach(string $email, string $name): bool
         $email,
         '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=',
         $body,
-        $headers
+        $headers,
+        '-fJanice@leiter.fr'
     );
 }
 

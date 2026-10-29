@@ -71,9 +71,10 @@ Die Leads ansehen: ${SITE}/preise
 
 Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.
 
-Leiter · Bright Pixel Advertisement Agency LLC
+Janice · Leiter
+Bright Pixel Advertisement Agency LLC
 1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA
-support@brightpixel.agency
+Janice@leiter.fr
 Impressum: ${SITE}/impressum
 Datenschutz: ${SITE}/datenschutz
 
