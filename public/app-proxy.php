@@ -502,7 +502,7 @@ function send_lead_outreach(string $email, string $name): bool
     $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
         'From: Janice <Janice@leiter.fr>',
-        'Reply-To: Janice@leiter.fr',
+        'Reply-To: Janice@leiter.fr, support@brightpixel.agency',
         'Sender: Janice@leiter.fr',
         'Message-ID: <' . $messageId . '>',
         'Date: ' . date('r'),
