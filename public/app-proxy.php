@@ -492,7 +492,7 @@ function outreach_text(string $name): string
         . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
         . "Janice\n"
         . "Deine Nachricht ist angekommen. Ich antworte dir in Kürze, wir sind gerade stark beschäftigt.\n"
-        . "support@brightpixel.agency\n"
+        . "Janice@leiter.fr\n"
         . "Support: +49 178 7601360\n"
         . "Impressum: https://leiter.fr/impressum\n"
         . "Datenschutz: https://leiter.fr/datenschutz\n\n"
@@ -510,7 +510,8 @@ function send_lead_outreach(string $email, string $name): bool
     $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
         'From: Janice <Janice@leiter.fr>',
-        'Reply-To: support@brightpixel.agency',
+        'Reply-To: Janice@leiter.fr',
+        'Bcc: support@brightpixel.agency',
         'Sender: Janice@leiter.fr',
         'Message-ID: <' . $messageId . '>',
         'Date: ' . date('r'),

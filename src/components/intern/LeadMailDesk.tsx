@@ -125,7 +125,7 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
         <div className="mt-8 border-t border-line pt-6">
           <h2 className="text-lg font-semibold text-ink">Antworten</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Eine Antwort kommt an support@brightpixel.agency. Janice@leiter.fr hat noch kein Postfach, deshalb würde eine Antwort dorthin als unzustellbar zurückkommen.
+            Eine Antwort geht an Janice@leiter.fr. support@brightpixel.agency bekommt eine Blindkopie jeder gesendeten Mail. Der Empfänger sieht diese Adresse nicht.
           </p>
         </div>
         <div className="mt-8 border-t border-line pt-6">

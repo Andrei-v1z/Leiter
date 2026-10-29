@@ -75,7 +75,7 @@ Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzur
 
 Janice
 Deine Nachricht ist angekommen. Ich antworte dir in Kürze, wir sind gerade stark beschäftigt.
-support@brightpixel.agency
+Janice@leiter.fr
 Support: +49 178 7601360
 Impressum: ${SITE}/impressum
 Datenschutz: ${SITE}/datenschutz
