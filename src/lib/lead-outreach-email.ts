@@ -8,6 +8,8 @@ export type OutreachSend = {
   email: string;
   name: string;
   createdAt: string;
+  openedAt?: string | null;
+  tracked?: boolean;
 };
 
 export function cleanOutreachName(value: string): string | null {
@@ -47,7 +49,8 @@ export function renderLeadEmail(template: string, name: string, imageOrigin: str
     .replaceAll("__DESK_SRC__", desk)
     .replaceAll("__JANICE_SRC__", janice)
     .replaceAll("__GREETING_BLOCK__", greetingBlock(name))
-    .replaceAll("__YEAR__", String(new Date().getFullYear()));
+    .replaceAll("__YEAR__", String(new Date().getFullYear()))
+    .replaceAll("__OPEN_PIXEL__", "");
 }
 
 export function leadEmailText(name: string): string {

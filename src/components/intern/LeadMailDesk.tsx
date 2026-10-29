@@ -52,6 +52,22 @@ function dayLabel(key: string, today: string): string {
   return pretty;
 }
 
+function openStatus(row: OutreachSend): string {
+  if (!row.openedAt) return row.tracked ? "Nicht geöffnet" : "—";
+  const opened = new Date(row.openedAt);
+  const sent = new Date(row.createdAt);
+  const clock = berlinClock(row.openedAt);
+  if (Number.isNaN(opened.getTime()) || Number.isNaN(sent.getTime()) || berlinKey(opened) === berlinKey(sent)) {
+    return `Geöffnet · ${clock}`;
+  }
+  const date = new Intl.DateTimeFormat("de-DE", {
+    timeZone: "Europe/Berlin",
+    day: "numeric",
+    month: "short",
+  }).format(opened);
+  return `Geöffnet · ${date} ${clock}`;
+}
+
 function groupSendsByDay(sends: OutreachSend[]): { key: string; label: string; rows: OutreachSend[] }[] {
   const today = berlinKey(new Date());
   const groups: { key: string; label: string; rows: OutreachSend[] }[] = [];
@@ -84,19 +100,25 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/admin/outreach", { headers: authHeaders(user, password) })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as { sends?: OutreachSend[]; template?: string };
-      })
-      .then((data) => {
-        if (cancelled || !data) return;
+    async function load(withTemplate: boolean) {
+      try {
+        const response = await fetch("/api/admin/outreach", { headers: authHeaders(user, password) });
+        if (!response.ok) return;
+        const data = (await response.json()) as { sends?: OutreachSend[]; template?: string };
+        if (cancelled) return;
         if (data.sends) setSends(data.sends);
-        if (data.template) setTemplate(data.template);
-      })
-      .catch(() => undefined);
+        if (withTemplate && data.template) setTemplate(data.template);
+      } catch {
+        return;
+      }
+    }
+    void load(true);
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void load(false);
+    }, 20000);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [user, password]);
 
@@ -307,6 +329,9 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
         </div>
         <div className="mt-8 border-t border-line pt-6">
           <h2 className="text-lg font-semibold text-ink">Zuletzt gesendet</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            Geöffnet heißt, das Mailprogramm hat die Bilder geladen. Blockierte Bilder bleiben auf Nicht geöffnet. Ältere Mails ohne Messung stehen auf —.
+          </p>
           {sends.length === 0 ? (
             <p className="mt-3 text-sm text-muted">Noch keine Mail.</p>
           ) : (
@@ -324,7 +349,10 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
                           {row.email}
                           {row.name ? <span className="text-muted"> · {row.name}</span> : null}
                         </span>
-                        <span className="meta text-muted">{berlinClock(row.createdAt)}</span>
+                        <span className={`meta ${row.openedAt ? "text-brass" : "text-muted"}`}>
+                          {openStatus(row)}
+                          {row.createdAt ? ` · ${berlinClock(row.createdAt)}` : ""}
+                        </span>
                       </li>
                     ))}
                   </ul>

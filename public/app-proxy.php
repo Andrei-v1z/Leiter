@@ -8,6 +8,10 @@ $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
 load_env(__DIR__ . '/.env');
 
+if (preg_match('#/api/mail/open/([a-f0-9]{32})/?$#', $path, $openMatch) === 1 && $method === 'GET') {
+    handle_mail_open($openMatch[1]);
+}
+
 if (preg_match('#/api/pricing/?$#', $path) === 1 && $method === 'GET') {
     echo json_encode(pricing_catalog(), JSON_UNESCAPED_UNICODE);
     exit;
@@ -356,10 +360,13 @@ function outreach_public_sends(array $sends): array
         if (!is_array($row)) {
             continue;
         }
+        $openedAt = isset($row['openedAt']) && is_string($row['openedAt']) ? $row['openedAt'] : '';
         $rows[] = [
             'email' => (string) ($row['email'] ?? ''),
             'name' => (string) ($row['name'] ?? ''),
             'createdAt' => (string) ($row['createdAt'] ?? ''),
+            'openedAt' => $openedAt !== '' ? $openedAt : null,
+            'tracked' => isset($row['token']) && is_string($row['token']) && $row['token'] !== '',
         ];
     }
     return array_reverse(array_slice($rows, -100));
@@ -388,7 +395,7 @@ function outreach_gate(array $sends, string $email): string
     return 'ok';
 }
 
-function outreach_append(string $email, string $name): array
+function outreach_append(string $email, string $name, string $token): array
 {
     $dir = __DIR__ . '/data';
     if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
@@ -410,6 +417,8 @@ function outreach_append(string $email, string $name): array
         'email' => $email,
         'name' => $name,
         'createdAt' => gmdate('c'),
+        'token' => $token,
+        'openedAt' => null,
     ];
     if (count($sends) > 100) {
         $sends = array_slice($sends, -100);
@@ -461,23 +470,96 @@ function outreach_greeting_block(string $name): string
     return '<p style="margin:16px 0 0;font-family:Georgia,\'Times New Roman\',serif;font-size:22px;line-height:1.3;color:#171410;">Hallo ' . $safe . ',</p>';
 }
 
-function outreach_html(string $name): string
+function outreach_pixel(string $token): string
+{
+    if (preg_match('/^[a-f0-9]{32}$/', $token) !== 1) {
+        return '';
+    }
+    return '<img src="https://leiter.fr/api/mail/open/' . $token . '" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;">';
+}
+
+function outreach_html(string $name, string $token = ''): string
 {
     $template = file_get_contents(__DIR__ . '/email/template.html');
     if (!is_string($template) || $template === '') {
         return '';
     }
     return str_replace(
-        ['__HERO_SRC__', '__DESK_SRC__', '__JANICE_SRC__', '__GREETING_BLOCK__', '__YEAR__'],
+        ['__HERO_SRC__', '__DESK_SRC__', '__JANICE_SRC__', '__GREETING_BLOCK__', '__YEAR__', '__OPEN_PIXEL__'],
         [
             'https://leiter.fr/email/hero.jpg',
             'https://leiter.fr/email/desk.jpg',
             'https://leiter.fr/email/janice.jpg',
             outreach_greeting_block($name),
             date('Y'),
+            outreach_pixel($token),
         ],
         $template
     );
+}
+
+function outreach_mark_opened(string $token): void
+{
+    if (preg_match('/^[a-f0-9]{32}$/', $token) !== 1) {
+        return;
+    }
+    $file = outreach_log_path();
+    if (!is_file($file)) {
+        return;
+    }
+    $handle = fopen($file, 'c+');
+    if ($handle === false) {
+        return;
+    }
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        return;
+    }
+    $contents = stream_get_contents($handle);
+    $parsed = is_string($contents) && $contents !== '' ? json_decode($contents, true) : null;
+    if (!is_array($parsed) || !isset($parsed['sends']) || !is_array($parsed['sends'])) {
+        flock($handle, LOCK_UN);
+        fclose($handle);
+        return;
+    }
+    $changed = false;
+    foreach ($parsed['sends'] as $index => $row) {
+        if (!is_array($row) || (string) ($row['token'] ?? '') !== $token) {
+            continue;
+        }
+        $already = isset($row['openedAt']) && is_string($row['openedAt']) && $row['openedAt'] !== '';
+        if ($already) {
+            break;
+        }
+        $parsed['sends'][$index]['openedAt'] = gmdate('c');
+        $changed = true;
+        break;
+    }
+    if ($changed) {
+        rewind($handle);
+        ftruncate($handle, 0);
+        fwrite($handle, json_encode($parsed, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        fflush($handle);
+    }
+    flock($handle, LOCK_UN);
+    fclose($handle);
+}
+
+function handle_mail_open(string $token): void
+{
+    outreach_mark_opened($token);
+    $gif = base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', true);
+    if (!is_string($gif)) {
+        $gif = '';
+    }
+    http_response_code(200);
+    header('Content-Type: image/gif');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    header('Content-Length: ' . strlen($gif));
+    echo $gif;
+    exit;
 }
 
 function outreach_text(string $name): string
@@ -505,19 +587,23 @@ function outreach_text(string $name): string
         . "Wenn du keine Hinweise mehr möchtest, antworte kurz auf diese Mail.\n";
 }
 
-function send_lead_outreach(string $email, string $name, bool $copy = true): bool
+function send_lead_outreach(string $email, string $name, bool $copy = true): ?string
 {
-    $html = outreach_html($name);
+    $token = bin2hex(random_bytes(16));
+    $html = outreach_html($name, $token);
     $text = outreach_text($name);
-    if ($html === '' || $text === '') {
-        return false;
+    if ($html === '' || $text === '' || outreach_pixel($token) === '') {
+        return null;
     }
     $subject = '=?UTF-8?B?' . base64_encode('Frische Leads, bevor der Bedarf abkühlt') . '?=';
     $sent = outreach_mail($email, $subject, $html, $text);
-    if ($sent && $copy) {
-        outreach_mail('support@brightpixel.agency', $subject, $html, $text);
+    if (!$sent) {
+        return null;
     }
-    return $sent;
+    if ($copy) {
+        outreach_mail('support@brightpixel.agency', $subject, outreach_html($name), $text);
+    }
+    return $token;
 }
 
 function outreach_mail(string $to, string $subject, string $html, string $text): bool
@@ -682,7 +768,8 @@ function handle_outreach_batch(): void
         if ($mailed > 0) {
             sleep(2);
         }
-        if (!send_lead_outreach($email, $name, false)) {
+        $token = send_lead_outreach($email, $name, false);
+        if ($token === null) {
             $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => 'Die Mail konnte nicht gesendet werden.'];
             continue;
         }
@@ -690,7 +777,7 @@ function handle_outreach_batch(): void
             $sampleName = $name;
         }
         $mailed++;
-        $sends = outreach_append($email, $name);
+        $sends = outreach_append($email, $name, $token);
         $results[] = ['email' => $email, 'name' => $name, 'ok' => true, 'error' => ''];
     }
     if ($mailed > 0) {
@@ -732,10 +819,11 @@ function handle_outreach_post(): void
     if ($gate === 'repeat') {
         fail('Diese Adresse hat die Mail gerade bekommen.', 429);
     }
-    if (!send_lead_outreach($email, $name, $copy)) {
+    $token = send_lead_outreach($email, $name, $copy);
+    if ($token === null) {
         fail('Die Mail konnte nicht gesendet werden.', 502);
     }
-    $sends = outreach_append($email, $name);
+    $sends = outreach_append($email, $name, $token);
     echo json_encode(['ok' => true, 'sends' => outreach_public_sends($sends)], JSON_UNESCAPED_UNICODE);
     exit;
 }
