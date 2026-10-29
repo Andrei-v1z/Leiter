@@ -362,7 +362,7 @@ function outreach_public_sends(array $sends): array
             'createdAt' => (string) ($row['createdAt'] ?? ''),
         ];
     }
-    return array_reverse(array_slice($rows, -30));
+    return array_reverse(array_slice($rows, -100));
 }
 
 function outreach_gate(array $sends, string $email): string
@@ -690,7 +690,11 @@ function handle_outreach_batch(): void
             $sent++;
         }
     }
-    echo json_encode(['sent' => $sent, 'results' => $results], JSON_UNESCAPED_UNICODE);
+    echo json_encode([
+        'sent' => $sent,
+        'results' => $results,
+        'sends' => outreach_public_sends($sends),
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

@@ -16,7 +16,7 @@ export async function listOutreachSends(): Promise<OutreachSend[]> {
         (row): row is OutreachSend =>
           !!row && typeof row.email === "string" && typeof row.createdAt === "string"
       )
-      .slice(-30)
+      .slice(-100)
       .reverse();
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;

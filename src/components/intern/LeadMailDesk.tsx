@@ -17,6 +17,57 @@ function authHeaders(user: string, password: string) {
   };
 }
 
+function berlinKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Berlin",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function berlinClock(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("de-DE", {
+    timeZone: "Europe/Berlin",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function dayLabel(key: string, today: string): string {
+  const [year, month, day] = key.split("-").map(Number);
+  const pretty = new Intl.DateTimeFormat("de-DE", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+  if (key === today) return `Heute, ${pretty}`;
+  const [todayYear, todayMonth, todayDay] = today.split("-").map(Number);
+  const yesterday = new Date(Date.UTC(todayYear, todayMonth - 1, todayDay));
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  if (key === yesterday.toISOString().slice(0, 10)) return `Gestern, ${pretty}`;
+  return pretty;
+}
+
+function groupSendsByDay(sends: OutreachSend[]): { key: string; label: string; rows: OutreachSend[] }[] {
+  const today = berlinKey(new Date());
+  const groups: { key: string; label: string; rows: OutreachSend[] }[] = [];
+  for (const row of sends) {
+    const date = new Date(row.createdAt);
+    const key = Number.isNaN(date.getTime()) ? "unbekannt" : berlinKey(date);
+    const current = groups[groups.length - 1];
+    if (!current || current.key !== key) {
+      groups.push({ key, label: key === "unbekannt" ? "Ohne Datum" : dayLabel(key, today), rows: [row] });
+    } else {
+      current.rows.push(row);
+    }
+  }
+  return groups;
+}
+
 export function LeadMailDesk({ user, password }: { user: string; password: string }) {
   const [template, setTemplate] = useState("");
   const [email, setEmail] = useState("");
@@ -120,6 +171,7 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
     const data = (await response.json().catch(() => null)) as {
       error?: string;
       sent?: number;
+      sends?: OutreachSend[];
       results?: { email: string; ok: boolean; error: string }[];
     } | null;
     setListSending(false);
@@ -136,6 +188,7 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
         return { ...row, problem: result.error };
       })
     );
+    if (data.sends) setSends(data.sends);
     const failed = data.results.filter((row) => !row.ok).length;
     setListOk(failed === 0);
     setListMessage(
@@ -257,17 +310,27 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
           {sends.length === 0 ? (
             <p className="mt-3 text-sm text-muted">Noch keine Mail.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-line">
-              {sends.map((row) => (
-                <li key={`${row.email}-${row.createdAt}`} className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
-                  <span className="text-ink">
-                    {row.email}
-                    {row.name ? <span className="text-muted"> · {row.name}</span> : null}
-                  </span>
-                  <span className="meta text-muted">{row.createdAt.slice(0, 16).replace("T", " ")}</span>
-                </li>
+            <div className="mt-4 space-y-6">
+              {groupSendsByDay(sends).map((group) => (
+                <section key={group.key}>
+                  <p className="text-sm text-muted">
+                    {group.label}
+                    <span> · {group.rows.length}</span>
+                  </p>
+                  <ul className="mt-1 divide-y divide-line">
+                    {group.rows.map((row) => (
+                      <li key={`${row.email}-${row.createdAt}`} className="flex flex-wrap items-baseline justify-between gap-2 py-2 text-sm">
+                        <span className="text-ink">
+                          {row.email}
+                          {row.name ? <span className="text-muted"> · {row.name}</span> : null}
+                        </span>
+                        <span className="meta text-muted">{berlinClock(row.createdAt)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
