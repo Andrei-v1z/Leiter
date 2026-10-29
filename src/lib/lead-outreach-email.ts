@@ -74,7 +74,6 @@ Die Leads ansehen: ${SITE}/preise
 Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.
 
 Janice
-Wenn du eine Frage hast, antworte auf diese Mail.
 Janice@leiter.fr
 Support: +49 178 7601360
 Impressum: ${SITE}/impressum

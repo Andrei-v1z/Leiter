@@ -491,7 +491,6 @@ function outreach_text(string $name): string
         . "Die Leads ansehen: https://leiter.fr/preise\n\n"
         . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
         . "Janice\n"
-        . "Wenn du eine Frage hast, antworte auf diese Mail.\n"
         . "Janice@leiter.fr\n"
         . "Support: +49 178 7601360\n"
         . "Impressum: https://leiter.fr/impressum\n"
