@@ -491,7 +491,7 @@ function outreach_text(string $name): string
         . "Die Leads ansehen: https://leiter.fr/preise\n\n"
         . "Du bezahlst nicht für mehr Namen. Du bezahlst dafür, im richtigen Moment anzurufen.\n\n"
         . "Janice\n"
-        . "Deine Nachricht ist angekommen. Ich antworte dir in Kürze, wir sind gerade stark beschäftigt.\n"
+        . "Wenn du eine Frage hast, antworte auf diese Mail.\n"
         . "Janice@leiter.fr\n"
         . "Support: +49 178 7601360\n"
         . "Impressum: https://leiter.fr/impressum\n"
@@ -506,14 +506,21 @@ function send_lead_outreach(string $email, string $name): bool
     if ($html === '' || $text === '') {
         return false;
     }
+    $subject = '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=';
+    $sent = outreach_mail($email, $subject, $html, $text);
+    if ($sent) {
+        outreach_mail('support@brightpixel.agency', $subject, $html, $text);
+    }
+    return $sent;
+}
+
+function outreach_mail(string $to, string $subject, string $html, string $text): bool
+{
     $boundary = 'leiter-' . bin2hex(random_bytes(12));
-    $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
         'From: Janice <Janice@leiter.fr>',
         'Reply-To: Janice@leiter.fr',
-        'Bcc: support@brightpixel.agency',
-        'Sender: Janice@leiter.fr',
-        'Message-ID: <' . $messageId . '>',
+        'Message-ID: <' . bin2hex(random_bytes(16)) . '@leiter.fr>',
         'Date: ' . date('r'),
         'MIME-Version: 1.0',
         'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
@@ -527,13 +534,7 @@ function send_lead_outreach(string $email, string $name): bool
         . "Content-Transfer-Encoding: base64\r\n\r\n"
         . chunk_split(base64_encode($html))
         . "--{$boundary}--\r\n";
-    return mail(
-        $email,
-        '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=',
-        $body,
-        $headers,
-        '-fJanice@leiter.fr'
-    );
+    return mail($to, $subject, $body, $headers, '-fJanice@leiter.fr');
 }
 
 function admin_plan_name(string $priceId): string
