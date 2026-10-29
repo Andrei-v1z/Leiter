@@ -56,6 +56,13 @@ if (preg_match('#/api/admin/newsletter/?$#', $path) === 1 && $method === 'GET') 
     exit;
 }
 
+if (preg_match('#/api/admin/outreach/batch/?$#', $path) === 1 && $method === 'POST') {
+    if (!admin_authorized()) {
+        fail('Unauthorized', 401);
+    }
+    handle_outreach_batch();
+}
+
 if (preg_match('#/api/admin/outreach/?$#', $path) === 1) {
     if (!admin_authorized()) {
         fail('Unauthorized', 401);
@@ -626,6 +633,64 @@ function handle_outreach_get(): void
         'sends' => outreach_public_sends(outreach_read_sends()),
         'template' => is_string($template) ? $template : '',
     ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function handle_outreach_batch(): void
+{
+    $raw = file_get_contents('php://input');
+    $body = is_string($raw) ? json_decode($raw, true) : null;
+    $incoming = is_array($body) && isset($body['recipients']) && is_array($body['recipients']) ? $body['recipients'] : [];
+    if (count($incoming) === 0) {
+        fail('Die Liste ist leer.');
+    }
+    if (count($incoming) > 100) {
+        fail('Höchstens 100 Adressen auf einmal.');
+    }
+    $sends = outreach_read_sends();
+    $results = [];
+    $stopped = '';
+    foreach ($incoming as $row) {
+        if (!is_array($row)) {
+            $results[] = ['email' => '', 'name' => '', 'ok' => false, 'error' => 'Keine gültige E-Mail'];
+            continue;
+        }
+        $email = outreach_recipient((string) ($row['email'] ?? ''));
+        $rawName = isset($row['name']) && is_string($row['name']) ? $row['name'] : '';
+        $cleaned = outreach_clean_name($rawName);
+        $name = $cleaned === null ? '' : $cleaned;
+        if ($email === '') {
+            $results[] = ['email' => '', 'name' => $rawName, 'ok' => false, 'error' => 'Keine gültige E-Mail'];
+            continue;
+        }
+        if ($stopped !== '') {
+            $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => $stopped];
+            continue;
+        }
+        $gate = outreach_gate($sends, $email);
+        if ($gate === 'hour') {
+            $stopped = 'In der letzten Stunde waren es schon 20 Mails.';
+            $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => $stopped];
+            continue;
+        }
+        if ($gate === 'repeat') {
+            $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => 'Diese Adresse hat die Mail gerade bekommen.'];
+            continue;
+        }
+        if (!send_lead_outreach($email, $name)) {
+            $results[] = ['email' => $email, 'name' => $name, 'ok' => false, 'error' => 'Die Mail konnte nicht gesendet werden.'];
+            continue;
+        }
+        $sends = outreach_append($email, $name);
+        $results[] = ['email' => $email, 'name' => $name, 'ok' => true, 'error' => ''];
+    }
+    $sent = 0;
+    foreach ($results as $result) {
+        if (!empty($result['ok'])) {
+            $sent++;
+        }
+    }
+    echo json_encode(['sent' => $sent, 'results' => $results], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

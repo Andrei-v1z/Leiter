@@ -8,6 +8,7 @@ import {
   renderLeadEmail,
   type OutreachSend,
 } from "@/lib/lead-outreach-email";
+import { parseOutreachCsv, sendableRecipients, type CsvRecipient } from "@/lib/outreach-csv";
 
 function authHeaders(user: string, password: string) {
   return {
@@ -25,6 +26,10 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
   const [message, setMessage] = useState("");
   const [ok, setOk] = useState(false);
   const [onLiveSite, setOnLiveSite] = useState(true);
+  const [rows, setRows] = useState<CsvRecipient[]>([]);
+  const [listMessage, setListMessage] = useState("");
+  const [listOk, setListOk] = useState(false);
+  const [listSending, setListSending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +82,69 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
     if (data?.sends) setSends(data.sends);
   }
 
+  function handleCsv(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    setListMessage("");
+    setListOk(false);
+    if (!file) {
+      setRows([]);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      setRows(parseOutreachCsv(text));
+    };
+    reader.readAsText(file);
+  }
+
+  async function handleListSend() {
+    const recipients = sendableRecipients(rows);
+    if (recipients.length === 0) return;
+    setListSending(true);
+    setListMessage("");
+    setListOk(false);
+    const response = await fetch("/api/admin/outreach/batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(user, password),
+      },
+      body: JSON.stringify({
+        recipients: recipients.map((row) => ({
+          email: row.email,
+          name: cleanOutreachName(row.name) ?? "",
+        })),
+      }),
+    });
+    const data = (await response.json().catch(() => null)) as {
+      error?: string;
+      sent?: number;
+      results?: { email: string; ok: boolean; error: string }[];
+    } | null;
+    setListSending(false);
+    if (!response.ok || !data?.results) {
+      setListMessage(data?.error || "Die Liste konnte nicht gesendet werden.");
+      return;
+    }
+    const byEmail = new Map(data.results.map((row) => [row.email, row]));
+    setRows((current) =>
+      current.map((row) => {
+        const result = byEmail.get(row.email);
+        if (!result || row.problem === "Doppelt" || row.problem === "Keine gültige E-Mail") return row;
+        if (result.ok) return { ...row, problem: "Gesendet" };
+        return { ...row, problem: result.error };
+      })
+    );
+    const failed = data.results.filter((row) => !row.ok).length;
+    setListOk(failed === 0);
+    setListMessage(
+      failed === 0
+        ? `Gesendet an ${data.sent ?? recipients.length}.`
+        : `${data.sent ?? 0} gesendet, ${failed} nicht.`
+    );
+  }
+
   return (
     <div className="mt-10 grid items-start gap-8 lg:grid-cols-[0.82fr_1.18fr]">
       <div className="border border-line bg-card p-6">
@@ -122,6 +190,62 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
           )}
           {message && <p className={`text-sm ${ok ? "text-brass" : "text-error"}`}>{message}</p>}
         </form>
+        <div className="mt-8 border-t border-line pt-6">
+            <h2 className="text-lg font-semibold text-ink">Liste</h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              CSV mit Spalten E-Mail und Name. Prüfe die Liste, danach geht jede Mail raus. Höchstens 20 pro Stunde.
+            </p>
+            <label className="mt-4 block text-sm text-muted" htmlFor="outreach-csv">
+              CSV-Datei
+            </label>
+            <input
+              id="outreach-csv"
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleCsv}
+              className="mt-2 block w-full text-sm text-ink"
+            />
+            {rows.length > 0 && (
+              <div className="mt-4 max-h-80 overflow-auto border border-line">
+                <table className="w-full text-left text-sm">
+                  <thead className="sticky top-0 bg-card">
+                    <tr className="border-b border-line text-muted">
+                      <th className="px-3 py-2 font-medium">Name</th>
+                      <th className="px-3 py-2 font-medium">E-Mail</th>
+                      <th className="px-3 py-2 font-medium">Prüfung</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row) => (
+                      <tr
+                        key={`${row.line}-${row.email}`}
+                        className="cursor-pointer border-b border-line last:border-0"
+                        onClick={() => {
+                          setEmail(row.email);
+                          if (cleanOutreachName(row.name)) setName(row.name);
+                        }}
+                      >
+                        <td className="px-3 py-2 text-ink">{row.name || "—"}</td>
+                        <td className="px-3 py-2 text-ink">{row.email || "—"}</td>
+                        <td className={`px-3 py-2 ${row.problem && row.problem !== "Gesendet" ? "text-error" : "text-brass"}`}>
+                          {row.problem || "Bereit"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Button
+              type="button"
+              className="mt-4"
+              disabled={listSending || sendableRecipients(rows).length === 0}
+              onClick={handleListSend}
+            >
+              {listSending ? "Senden…" : `An ${sendableRecipients(rows).length} senden`}
+            </Button>
+            {listMessage && <p className={`mt-3 text-sm ${listOk ? "text-brass" : "text-error"}`}>{listMessage}</p>}
+          </div>
         <div className="mt-8 border-t border-line pt-6">
           <h2 className="text-lg font-semibold text-ink">Antworten</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
