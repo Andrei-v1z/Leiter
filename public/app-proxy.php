@@ -505,7 +505,7 @@ function send_lead_outreach(string $email, string $name): bool
     if ($html === '' || $text === '') {
         return false;
     }
-    $subject = '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=';
+    $subject = '=?UTF-8?B?' . base64_encode('Frische Leads, bevor der Bedarf abkühlt') . '?=';
     $sent = outreach_mail($email, $subject, $html, $text);
     if ($sent) {
         outreach_mail('support@brightpixel.agency', $subject, $html, $text);
@@ -622,7 +622,7 @@ function handle_outreach_get(): void
 {
     $template = file_get_contents(__DIR__ . '/email/template.html');
     echo json_encode([
-        'subject' => 'Frische Anfragen, bevor der Bedarf abkühlt',
+        'subject' => 'Frische Leads, bevor der Bedarf abkühlt',
         'sends' => outreach_public_sends(outreach_read_sends()),
         'template' => is_string($template) ? $template : '',
     ], JSON_UNESCAPED_UNICODE);

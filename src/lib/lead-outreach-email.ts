@@ -1,6 +1,6 @@
 import { isValidEmail, normalizeEmail } from "@/lib/newsletter";
 
-export const LEAD_EMAIL_SUBJECT = "Frische Anfragen, bevor der Bedarf abkühlt";
+export const LEAD_EMAIL_SUBJECT = "Frische Leads, bevor der Bedarf abkühlt";
 
 const SITE = "https://leiter.fr";
 
