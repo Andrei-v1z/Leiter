@@ -123,6 +123,12 @@ export function LeadMailDesk({ user, password }: { user: string; password: strin
           {message && <p className={`text-sm ${ok ? "text-brass" : "text-error"}`}>{message}</p>}
         </form>
         <div className="mt-8 border-t border-line pt-6">
+          <h2 className="text-lg font-semibold text-ink">Antworten</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            Eine Antwort kommt an Janice@leiter.fr und an support@brightpixel.agency. Der Text liegt in diesen beiden Postfächern. Hier steht, an wen die Mail gegangen ist.
+          </p>
+        </div>
+        <div className="mt-8 border-t border-line pt-6">
           <h2 className="text-lg font-semibold text-ink">Zuletzt gesendet</h2>
           {sends.length === 0 ? (
             <p className="mt-3 text-sm text-muted">Noch keine Mail.</p>

@@ -69,6 +69,13 @@ if (preg_match('#/api/admin/outreach/?$#', $path) === 1) {
     fail('Methode nicht erlaubt', 405);
 }
 
+if (preg_match('#/api/admin/customers/?$#', $path) === 1 && $method === 'GET') {
+    if (!admin_authorized()) {
+        fail('Unauthorized', 401);
+    }
+    handle_admin_customers();
+}
+
 if (preg_match('#/api/admin/pricing/?$#', $path) === 1) {
     if (!admin_authorized()) {
         fail('Unauthorized', 401);
@@ -526,6 +533,88 @@ function send_lead_outreach(string $email, string $name): bool
         $headers,
         '-fJanice@leiter.fr'
     );
+}
+
+function admin_plan_name(string $priceId): string
+{
+    $names = [
+        'price_1UVSh5AZohsks7xNq0fsIWPB' => 'Zugang',
+        'price_1UVSh6AZohsks7xN9NlwFxGq' => 'Atelier',
+        'price_1UVSh7AZohsks7xNNWEPlMdO' => 'Kanzlei',
+    ];
+    return $names[$priceId] ?? 'Abo';
+}
+
+function handle_admin_customers(): void
+{
+    $secret = env_value('STRIPE_SECRET_KEY');
+    if ($secret === '') {
+        fail('Stripe ist nicht konfiguriert.', 500);
+    }
+    $running = ['active' => true, 'trialing' => true, 'past_due' => true, 'unpaid' => true, 'paused' => true];
+    $listed = stripe_get('subscriptions?status=all&limit=100&expand[]=data.customer', $secret);
+    if (!$listed['ok']) {
+        fail('Kunden konnten nicht geladen werden.', 502);
+    }
+    $subscriptions = [];
+    $rows = isset($listed['data']['data']) && is_array($listed['data']['data']) ? $listed['data']['data'] : [];
+    foreach ($rows as $subscription) {
+        if (!is_array($subscription)) {
+            continue;
+        }
+        $status = (string) ($subscription['status'] ?? '');
+        if (!isset($running[$status])) {
+            continue;
+        }
+        $customer = $subscription['customer'] ?? null;
+        $email = is_array($customer) ? (string) ($customer['email'] ?? '') : '';
+        $name = is_array($customer) ? (string) ($customer['name'] ?? '') : '';
+        $priceId = (string) ($subscription['items']['data'][0]['price']['id'] ?? '');
+        $end = subscription_period_end($subscription);
+        $start = isset($subscription['start_date']) ? (int) $subscription['start_date'] : 0;
+        $subscriptions[] = [
+            'email' => $email,
+            'name' => $name,
+            'plan' => admin_plan_name($priceId),
+            'status' => $status,
+            'since' => $start > 0 ? gmdate('c', $start) : '',
+            'renews' => $end > 0 ? gmdate('c', $end) : null,
+        ];
+    }
+
+    $sessions = stripe_get('checkout/sessions?limit=100&status=complete', $secret);
+    if (!$sessions['ok']) {
+        fail('Kunden konnten nicht geladen werden.', 502);
+    }
+    $purchases = [];
+    $sessionRows = isset($sessions['data']['data']) && is_array($sessions['data']['data']) ? $sessions['data']['data'] : [];
+    foreach ($sessionRows as $session) {
+        if (!is_array($session)) {
+            continue;
+        }
+        $details = isset($session['customer_details']) && is_array($session['customer_details']) ? $session['customer_details'] : [];
+        $email = (string) ($details['email'] ?? ($session['customer_email'] ?? ''));
+        $product = isset($session['metadata']['product']) && is_string($session['metadata']['product'])
+            ? $session['metadata']['product']
+            : 'Leiter';
+        $created = isset($session['created']) ? (int) $session['created'] : 0;
+        $purchases[] = [
+            'email' => $email,
+            'product' => $product !== '' ? $product : 'Leiter',
+            'amount' => (int) ($session['amount_total'] ?? 0),
+            'currency' => (string) ($session['currency'] ?? 'eur'),
+            'createdAt' => $created > 0 ? gmdate('c', $created) : '',
+            'mode' => (($session['mode'] ?? '') === 'subscription') ? 'subscription' : 'payment',
+        ];
+    }
+    usort($purchases, function (array $left, array $right): int {
+        return strcmp((string) ($right['createdAt'] ?? ''), (string) ($left['createdAt'] ?? ''));
+    });
+    echo json_encode([
+        'subscriptions' => $subscriptions,
+        'purchases' => $purchases,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 function handle_outreach_get(): void

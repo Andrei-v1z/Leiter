@@ -5,11 +5,50 @@ import { Button } from "@/components/ui/Button";
 import type { PricingConfig, VolumeTier, CategoryPrice, SubscriptionPlan } from "@/lib/pricing-types";
 import { subscribersToCsv, subscribersToEmailList, type NewsletterSubscriber } from "@/lib/newsletter";
 import { LeadMailDesk } from "@/components/intern/LeadMailDesk";
+import { CustomerDesk } from "@/components/intern/CustomerDesk";
 
 function authHeaders(user: string, password: string) {
   return {
     "x-admin-user": user,
     "x-admin-password": password,
+  };
+}
+
+function asNumber(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function fillPricing(data: PricingConfig): PricingConfig {
+  const tiers = Array.isArray(data.volumeTiers) ? data.volumeTiers : [];
+  const categories = Array.isArray(data.categories) ? data.categories : [];
+  const subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+  return {
+    ...data,
+    singleLead: {
+      basePrice: asNumber(data.singleLead?.basePrice, 80),
+      currency: data.singleLead?.currency || "EUR",
+    },
+    volumeTiers: tiers.map((tier) => ({
+      quantity: asNumber(tier?.quantity),
+      totalPrice: asNumber(tier?.totalPrice),
+      perLeadPrice: asNumber(tier?.perLeadPrice),
+      savings: asNumber(tier?.savings),
+      badge: tier?.badge ?? null,
+      discountLabel: tier?.discountLabel ?? null,
+    })),
+    categories: categories.map((category) => ({
+      slug: category?.slug ?? "",
+      name: category?.name ?? "",
+      basePrice: asNumber(category?.basePrice),
+    })),
+    subscriptions: subscriptions.map((plan) => ({
+      ...plan,
+      description: plan?.description ?? "",
+      badge: plan?.badge ?? null,
+      cta: plan?.cta ?? "",
+      featured: Boolean(plan?.featured),
+      features: Array.isArray(plan?.features) ? plan.features : [],
+    })),
   };
 }
 
@@ -22,7 +61,7 @@ export default function InternPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
-  const [desk, setDesk] = useState<"mail" | "preise">("mail");
+  const [desk, setDesk] = useState<"mail" | "kunden" | "preise">("mail");
 
   async function loadConfig(adminUser: string, adminPassword: string) {
     const headers = authHeaders(adminUser, adminPassword);
@@ -38,7 +77,7 @@ export default function InternPage() {
       return false;
     }
     const data = (await res.json()) as PricingConfig;
-    setConfig(data);
+    setConfig(fillPricing(data));
     setAuthenticated(true);
     setMessage("");
 
@@ -165,17 +204,24 @@ export default function InternPage() {
 
   return (
     <section className="section-padding">
-        <div className={desk === "mail" ? "mx-auto max-w-6xl" : "mx-auto max-w-5xl"}>
+        <div className={desk === "preise" ? "mx-auto max-w-5xl" : "mx-auto max-w-6xl"}>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="display text-4xl text-ink">{desk === "mail" ? "Vertriebsmail" : "Preiskonfiguration"}</h1>
-            <div className="mt-4 flex gap-2">
+            <h1 className="display text-4xl text-ink">Intern</h1>
+            <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setDesk("mail")}
                 className={`px-4 py-2 text-sm ${desk === "mail" ? "bg-navy text-card" : "border border-line text-muted"}`}
               >
                 Vertriebsmail
+              </button>
+              <button
+                type="button"
+                onClick={() => setDesk("kunden")}
+                className={`px-4 py-2 text-sm ${desk === "kunden" ? "bg-navy text-card" : "border border-line text-muted"}`}
+              >
+                Kunden
               </button>
               <button
                 type="button"
@@ -199,6 +245,7 @@ export default function InternPage() {
         )}
 
         {desk === "mail" && <LeadMailDesk user={user} password={password} />}
+        {desk === "kunden" && <CustomerDesk user={user} password={password} />}
         {desk === "preise" && (<>
 
         <div className="mt-12 border border-line bg-card p-6">
@@ -342,7 +389,7 @@ export default function InternPage() {
                   <label className="text-xs text-muted">Beschreibung</label>
                   <input
                     type="text"
-                    value={plan.description}
+                    value={plan.description ?? ""}
                     onChange={(e) => updateSubscription(i, "description", e.target.value)}
                     className="mt-1 w-full field"
                   />
@@ -350,7 +397,7 @@ export default function InternPage() {
                 <div className="sm:col-span-2">
                   <label className="text-xs text-muted">Leistungen (eine pro Zeile)</label>
                   <textarea
-                    value={plan.features.join("\n")}
+                    value={(plan.features ?? []).join("\n")}
                     onChange={(e) =>
                       updateSubscription(i, "features", e.target.value.split("\n").filter(Boolean))
                     }
@@ -362,7 +409,7 @@ export default function InternPage() {
                   <label className="text-xs text-muted">CTA</label>
                   <input
                     type="text"
-                    value={plan.cta}
+                    value={plan.cta ?? ""}
                     onChange={(e) => updateSubscription(i, "cta", e.target.value)}
                     className="mt-1 w-full field"
                   />
