@@ -509,9 +509,9 @@ function send_lead_outreach(string $email, string $name): bool
     $boundary = 'leiter-' . bin2hex(random_bytes(12));
     $messageId = bin2hex(random_bytes(16)) . '@leiter.fr';
     $headers = implode("\r\n", [
-        'From: Janice <support@brightpixel.agency>',
+        'From: Janice <Janice@leiter.fr>',
         'Reply-To: support@brightpixel.agency',
-        'Sender: support@brightpixel.agency',
+        'Sender: Janice@leiter.fr',
         'Message-ID: <' . $messageId . '>',
         'Date: ' . date('r'),
         'MIME-Version: 1.0',
@@ -531,7 +531,7 @@ function send_lead_outreach(string $email, string $name): bool
         '=?UTF-8?B?' . base64_encode('Frische Anfragen, bevor der Bedarf abkühlt') . '?=',
         $body,
         $headers,
-        '-fsupport@brightpixel.agency'
+        '-fJanice@leiter.fr'
     );
 }
 
