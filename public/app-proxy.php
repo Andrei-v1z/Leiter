@@ -486,6 +486,7 @@ function outreach_text(string $name): string
         . "Bright Pixel Advertisement Agency LLC\n"
         . "1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA\n"
         . "Janice@leiter.fr\n"
+        . "Support: +49 178 7601360\n"
         . "Impressum: https://leiter.fr/impressum\n"
         . "Datenschutz: https://leiter.fr/datenschutz\n\n"
         . "Wenn du keine Hinweise mehr möchtest, antworte kurz auf diese Mail.\n";

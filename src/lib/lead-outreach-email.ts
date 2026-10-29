@@ -75,6 +75,7 @@ Janice · Leiter
 Bright Pixel Advertisement Agency LLC
 1309 Coffeen Avenue STE 1200, Sheridan, Wyoming 82801, USA
 Janice@leiter.fr
+Support: +49 178 7601360
 Impressum: ${SITE}/impressum
 Datenschutz: ${SITE}/datenschutz
 
