@@ -98,9 +98,13 @@ jobs:
           cat > .htaccess <<'EOF'
           DirectoryIndex index.html
           Options -Indexes
+          DirectorySlash Off
           RewriteEngine On
           RewriteCond %{HTTP_HOST} ^(www\.)?leiter\.be$ [NC]
           RewriteRule ^ https://leiter.fr%{REQUEST_URI} [R=301,L]
+          RewriteCond %{REQUEST_FILENAME} -d
+          RewriteCond %{REQUEST_URI} !/$
+          RewriteRule ^(.+[^/])$ https://leiter.fr/$1/ [R=301,L]
           RewriteRule ^data/ - [F,L]
           RewriteRule ^email/template\.html$ - [F,L]
           RewriteRule ^api(/.*)?$ app-proxy.php [QSA,L]

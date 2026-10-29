@@ -126,7 +126,7 @@ export default function InternPage() {
       <section className="section-padding">
         <div className="mx-auto max-w-md">
           <h1 className="display text-4xl text-ink">Anmelden</h1>
-          <form onSubmit={handleLogin} className="mt-8 space-y-4">
+          <form method="post" onSubmit={handleLogin} className="mt-8 space-y-4">
             <div>
               <label className="block text-sm text-muted" htmlFor="intern-user">
                 Benutzer
